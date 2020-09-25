@@ -10,5 +10,5 @@ mypy = ">=0.670"
 codecov = "*"
 
 [packages]
-numpy = ">=1.15.2"
+numpy = ">=1.15"
 # TODO scipy
