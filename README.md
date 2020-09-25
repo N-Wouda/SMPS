@@ -5,6 +5,8 @@ problems in the SMPS format.
 
 TODO user manual/documentation
 
+TODO pip install
+
 TODO badges
 
 ## Motivation
