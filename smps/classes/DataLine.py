@@ -32,6 +32,8 @@ class DataLine:
         return float(self._raw[24:36].strip())
 
     def has_second_data_entry(self):
+        # TODO is this sufficient to ensure both the name and number field
+        #  exist?
         return len(self._raw) > 40
 
     def second_data_name(self):

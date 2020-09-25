@@ -27,7 +27,14 @@ class Parser(ABC):
         Path
             A Python path to the file this parser processes. Assumes existence
             has been checked before calling this method.
+
+        Raises
+        ------
+        AssertionError
+            When the file does not exist.
         """
+        assert self.file_exists()
+
         for extension in self.FILE_EXTENSIONS:
             if (self._location / extension).exists():
                 return self._location / extension
