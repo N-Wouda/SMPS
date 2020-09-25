@@ -13,6 +13,20 @@ def test_indicator_and_name():
     assert_equal(data_line.name(), "OBJ")
 
 
+def test_comment():
+    """
+    Tests if the DataLine class correctly detects comment lines.
+    """
+    data_line = DataLine("* bogus stuff")
+    assert_(data_line.is_comment())
+
+    data_line = DataLine("    * BOGUS")
+    assert_(data_line.is_comment())
+
+    data_line = DataLine(" N  OBJ")
+    assert_(not data_line.is_comment())
+
+
 def test_first_data_entry():
     """
     Tests if the DataLine class correctly parses the first data entry.

@@ -22,6 +22,9 @@ class DataLine:
     def indicator(self):
         return self._raw[1:3].strip()
 
+    def is_comment(self):
+        return self._raw.lstrip().startswith("*")
+
     def name(self):
         return self._raw[4:12].strip()
 
