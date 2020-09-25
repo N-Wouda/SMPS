@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+from smps.classes import DataLine
+
 
 class Parser(ABC):
     FILE_EXTENSIONS = []  # Acceptable file extensions.
@@ -39,16 +41,21 @@ class Parser(ABC):
             if self._location.with_suffix(extension).exists():
                 return self._location.with_suffix(extension)
 
-    @abstractmethod
     def parse(self):
         """
         Parses the given file location.
         """
-        pass
+        for line in self._line():
+            data_line = DataLine(line)
+
+            if data_line.is_comment() or self._transition(line):
+                continue
+
+            self._process_data_line(data_line)
 
     def _line(self):
         """
-        Parses the file, one line at a time.
+        Reads the file, one line at a time (generator).
 
         Yields
         ------
@@ -58,3 +65,32 @@ class Parser(ABC):
         with open(str(self.file_location())) as fh:
             for line in fh:
                 yield line
+
+    @abstractmethod
+    def _process_data_line(self, data_line):
+        """
+        Processes the given data line.
+
+        Parameters
+        ----------
+        data_line : DataLine
+            A single line in the file that's being parsed.
+        """
+        pass  # no-op, implementation in concrete implementations
+
+    def _transition(self, line):
+        """
+        Checks if the passed-in line defines a section header, in which case
+        we are about to parse a new part of the file.
+
+        Parameters
+        ----------
+        line : str
+            The line to test.
+
+        Returns
+        -------
+        bool
+            True if this line is a section header, False otherwise.
+        """
+        pass  # TODO

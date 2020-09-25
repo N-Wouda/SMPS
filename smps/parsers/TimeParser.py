@@ -5,6 +5,5 @@ class TimeParser(Parser):
     FILE_EXTENSIONS = [".tim", ".TIM", ".time", ".TIME"]
     SECTIONS = ["TIME", "PERIODS", "ENDATA"]
 
-    def parse(self):
-        for line in self._line():
-            pass  # TODO
+    def _process_data_line(self, data_line):
+        pass  # TODO
