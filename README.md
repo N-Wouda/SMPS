@@ -1,4 +1,6 @@
 # SMPS
+[![Build Status](https://travis-ci.com/N-Wouda/SMPS.svg?branch=master)](https://travis-ci.com/N-Wouda/SMPS)
+[![codecov](https://codecov.io/gh/N-Wouda/SMPS/branch/master/graph/badge.svg)](https://codecov.io/gh/N-Wouda/SMPS)
 
 This repository provides a Python package for parsing stochastic programming 
 problems in the SMPS format.
@@ -6,8 +8,6 @@ problems in the SMPS format.
 TODO user manual/documentation
 
 TODO pip install
-
-TODO badges
 
 ## Motivation
 
