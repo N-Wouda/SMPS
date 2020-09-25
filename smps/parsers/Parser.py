@@ -17,7 +17,7 @@ class Parser(ABC):
             True if the file location points to a file of the appropriate type
             for this parser, False if not.
         """
-        return any((self._location / extension).exists()
+        return any(self._location.with_suffix(extension).exists()
                    for extension in self.FILE_EXTENSIONS)
 
     def file_location(self):
@@ -36,8 +36,8 @@ class Parser(ABC):
         assert self.file_exists()
 
         for extension in self.FILE_EXTENSIONS:
-            if (self._location / extension).exists():
-                return self._location / extension
+            if self._location.with_suffix(extension).exists():
+                return self._location.with_suffix(extension)
 
     @abstractmethod
     def parse(self):
