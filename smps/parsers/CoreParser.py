@@ -229,10 +229,10 @@ class CoreParser(Parser):
             self._lb = np.zeros(len(self.variable_names))
             self._ub = np.full(len(self.variable_names), np.inf)
 
-        types = {"FR", "MI", "PL", "BV", "LO", "UP", "FX", "LI", "UI"}
+        accepted_types = {"LO", "UP", "FX", "FR", "MI", "PL", "BV", "LI", "UI"}
         bound_type = data_line.indicator()
 
-        if bound_type not in types:
+        if bound_type not in accepted_types:
             msg = f"Bounds of type {bound_type} are not understood."
             logger.error(msg)
             raise ValueError(msg)
