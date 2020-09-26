@@ -46,14 +46,14 @@ class Parser(ABC):
          existence has been checked before calling this method (see
          ``file_exists``).
         """
-        assert self.file_exists()
-
         for extension in self.FILE_EXTENSIONS:
             file = self._location.with_suffix(extension)
 
             if file.exists():
                 logger.debug(f"Found existing file {file}.")
                 return file
+
+        assert self.file_exists()
 
     def parse(self):
         """
