@@ -1,17 +1,18 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Generator, List, Union
 
 from smps.classes import DataLine
 
 
 class Parser(ABC):
-    FILE_EXTENSIONS = []  # Acceptable file extensions.
-    SECTIONS = []  # File sections.
+    FILE_EXTENSIONS: List[str] = []  # Acceptable file extensions.
+    SECTIONS: List[str] = []  # Header (file) sections.
 
-    def __init__(self, location):
+    def __init__(self, location: Union[str, Path]):
         self._location = Path(location)
 
-    def file_exists(self):
+    def file_exists(self) -> bool:
         """
         Returns
         -------
@@ -22,7 +23,7 @@ class Parser(ABC):
         return any(self._location.with_suffix(extension).exists()
                    for extension in self.FILE_EXTENSIONS)
 
-    def file_location(self):
+    def file_location(self) -> Path:
         """
         Returns
         -------
@@ -53,7 +54,7 @@ class Parser(ABC):
 
             self._process_data_line(data_line)
 
-    def _line(self):
+    def _line(self) -> Generator[str, None, None]:
         """
         Reads the file, one line at a time (generator).
 
@@ -67,7 +68,7 @@ class Parser(ABC):
                 yield line
 
     @abstractmethod
-    def _process_data_line(self, data_line):
+    def _process_data_line(self, data_line: DataLine):
         """
         Processes the given data line.
 
@@ -78,7 +79,7 @@ class Parser(ABC):
         """
         pass  # no-op, implementation in concrete implementations
 
-    def _transition(self, line):
+    def _transition(self, line: str) -> bool:
         """
         Checks if the passed-in line defines a section header, in which case
         we are about to parse a new part of the file.

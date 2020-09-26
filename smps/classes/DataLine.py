@@ -16,37 +16,37 @@ class DataLine:
         Raw data line string, to be parsed.
     """
 
-    def __init__(self, data_line):
+    def __init__(self, data_line: str):
         self._raw = data_line
 
-    def indicator(self):
+    def indicator(self) -> str:
         return self._raw[1:3].strip()
 
-    def is_comment(self):
+    def is_comment(self) -> bool:
         return self._raw.lstrip().startswith("*")
 
-    def name(self):
+    def name(self) -> str:
         return self._raw[4:12].strip()
 
-    def first_data_name(self):
+    def first_data_name(self) -> str:
         return self._raw[14:22].strip()
 
-    def first_number(self):
+    def first_number(self) -> float:
         return float(self._raw[24:36].strip())
 
-    def has_second_data_entry(self):
+    def has_second_data_entry(self) -> bool:
         # TODO is this sufficient to ensure both the name and number field
         #  exist?
         return len(self._raw) > 40
 
-    def second_data_name(self):
+    def second_data_name(self) -> str:
         return self._raw[39:47].strip()
 
-    def second_number(self):
+    def second_number(self) -> float:
         return float(self._raw[49:61].strip())
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._raw
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "DataLine('{raw}')".format(raw=str(self))

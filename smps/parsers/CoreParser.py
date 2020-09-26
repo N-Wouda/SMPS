@@ -7,4 +7,3 @@ class CoreParser(Parser):
 
     def _process_data_line(self, data_line):
         pass  # TODO
-
