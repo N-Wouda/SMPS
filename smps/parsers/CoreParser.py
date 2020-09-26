@@ -29,20 +29,29 @@ class CoreParser(Parser):
 
         self._constraint_names = []
         self._constraint_senses = []
+        self._constr2idx = {}
+
         self._objective_name = ""
 
-        # This list will contain all elements of the constrain matrix, as a
-        # list of (row, column, value)-tuples. That's a fairly convenient
+        # This list contains all objective coefficients, as a list of
+        # (variable, value)-tuples.
+        self._obj_coeffs: List[Tuple[str, float]] = []
+
+        # This list will contain all elements of the constrain matrix, as a list
+        # of (constraint, variable, value)-tuples. That's a fairly convenient
         # way to construct the sparse matrices later.
         self._elements: List[Tuple[str, str, float]] = []
+        self._variable_names = []
+        self._var2idx = {}
+
         # TODO
 
     @property
     def constraint_names(self) -> List[str]:
         """
-        Returns the constraint names, as an ordered list. The first name belongs
-        to the first constraint, the second to the second constraint, and so on.
-        This list excludes the name of the objective, which can be queried as
+        Returns the constraint names, as a list. The first name belongs to the
+        first constraint, the second to the second constraint, and so on. This
+         list excludes the name of the objective, which can be queried as
         ``objective_name``.
         """
         return self._constraint_names
@@ -50,10 +59,10 @@ class CoreParser(Parser):
     @property
     def constraint_senses(self) -> List[str]:
         """
-        Returns the constraint senses, as an ordered list. The first sense
-        belongs to the first constraint, the second to the second constraint,
-        and so on. This list contains values in {'E', 'L', 'G'}, indicating
-        equality, less-than-equal, or greater-than-equal senses, respectively.
+        Returns the constraint senses, as a list. The first sense belongs to the
+        first constraint, the second to the second constraint, and so on. This
+        list contains values in {'E', 'L', 'G'}, indicating equality,
+        less-than-equal, or greater-than-equal senses, respectively.
         """
         return self._constraint_senses
 
@@ -63,6 +72,14 @@ class CoreParser(Parser):
         Objective function name.
         """
         return self._objective_name
+
+    @property
+    def variable_names(self) -> List[str]:
+        """
+        Returns the variable names, as a list. The first name belongs to the
+        first variable, the second to the second variable, and so on.
+        """
+        return self._variable_names
 
     def _process_name(self, data_line: DataLine):
         assert data_line.header() == "NAME"
@@ -90,19 +107,23 @@ class CoreParser(Parser):
             self._constraint_names.append(data_line.name())
             self._constraint_senses.append(data_line.indicator())
 
+            self._constr2idx[data_line.name()] = len(self._constraint_names) - 1
+
     def _process_columns(self, data_line: DataLine):
-        # TODO track var names and indices
         var = data_line.name()
+
+        if var not in self._var2idx:
+            self._variable_names.append(var)
+            self._var2idx[var] = len(self._variable_names) - 1
+
         constr = data_line.first_data_name()
         value = data_line.first_number()
-
-        self._elements.append((constr, var, value))
+        self._add(constr, var, value)
 
         if data_line.has_second_data_entry():
             constr = data_line.second_data_name()
             value = data_line.second_number()
-
-            self._elements.append((constr, var, value))
+            self._add(constr, var, value)
 
     def _process_rhs(self, data_line: DataLine):
         pass  # TODO
@@ -112,3 +133,14 @@ class CoreParser(Parser):
 
     def _process_ranges(self, data_line: DataLine):
         pass  # TODO
+
+    def _add(self, constr: str, var: str, value: float):
+        if constr == self.objective_name:
+            self._obj_coeffs.append((var, value))
+
+        if constr in self._constr2idx:
+            self._elements.append((constr, var, value))
+
+        if constr != self.objective_name and constr not in self._constr2idx:
+            # This is likely a "no restriction" row other than the objective.
+            logger.info(f"Constraint {constr} is not understood, and skipped.")
