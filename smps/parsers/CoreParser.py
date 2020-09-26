@@ -240,7 +240,7 @@ class CoreParser(Parser):
         var = data_line.first_data_name()
         idx = self._var2idx[var]
 
-        # The value is clear from these types, and need not have been specified.
+        # The value is clear from the type, and need not have been specified.
         # Hence we treat these separately, and then return.
         if bound_type in {"FR", "MI", "PL", "BV"}:
             if bound_type == "FR":  # free variable

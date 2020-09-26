@@ -77,6 +77,61 @@ def test_ignore_multiple_no_restriction_rows():
     assert_equal(parser.objective_name, "OBJ1")
 
 
+def test_objective_coefficients():
+    """
+    Tests if the objective coefficients are parsed correctly on a small file.
+    """
+    parser = CoreParser("data/test/core_objective_coefficients.cor")
+    parser.parse()
+
+    assert_almost_equal(parser.objective_coefficients,
+                        [10.0, 8, -50.0, 1e3, -18.98, 12.54, 1, 150, 10.0])
+
+
+def test_objective_coefficients_lands():
+    """
+    Tests if the objective coefficients are parsed correctly on the LandS
+    instance. This is a fairly regular file, without second data entries, and
+    no non-zero objectives.
+    """
+    parser = CoreParser("data/electric/LandS.cor")
+    parser.parse()
+
+    expected = [10.0, 7.0, 16.0, 6.0, 40.0, 24.0, 4.0, 45.0, 27.0, 4.5, 32.0,
+                19.2, 3.2, 55.0, 33.0, 5.5]
+
+    assert_almost_equal(parser.objective_coefficients,
+                        expected)
+
+
+def test_integer_marker_columns():
+    """
+    TODO
+    """
+    pass
+
+
+def test_rhs():
+    """
+    TODO
+    """
+    pass
+
+
+def test_rhs_lands():
+    """
+    TODO
+    """
+    pass
+
+
+def test_rhs_warns_unknown_constraint():
+    """
+    TODO
+    """
+    pass
+
+
 def test_parse_bound_types():
     """
     Tests if the parser correctly parses the many available bound types. See
