@@ -25,6 +25,12 @@ class Parser(ABC):
         self._state = next(iter(self.STEPS.keys()))
         self._location = Path(location)
 
+        self._name = ""  # each file defines this field.
+
+    @property
+    def name(self) -> str:
+        return self._name
+
     def file_exists(self) -> bool:
         """
         Returns
@@ -105,7 +111,10 @@ class Parser(ABC):
         bool
             True if this line is a section header, False otherwise.
         """
-        clean = line.strip().upper()
+        # Some sections has additional definitions in their header. Here we
+        # care only about the first value.
+        parts = line.strip().split()
+        clean = parts[0].upper()
 
         if clean == self._state:
             return False  # this is very likely the first state.

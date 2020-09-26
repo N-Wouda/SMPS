@@ -14,7 +14,6 @@ def test_file_does_not_exist():
 
 
 def test_warns_missing_time_value():
-    # TODO test message content?
     parser = TimeParser("data/test/time_file_missing_time_section_value")
 
     with assert_warns(UserWarning):

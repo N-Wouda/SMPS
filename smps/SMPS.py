@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 from typing import Union
 
@@ -37,6 +38,10 @@ class SMPS:
         self._core.parse()
         self._time.parse()
         self._stoch.parse()
+
+        if len({self._stoch.name, self._core.name, self._time.name}) != 1:
+            warnings.warn("The problem names in the CORE, TIME, and STOCH files"
+                          " do not agree.")
 
     @property
     def location(self) -> Path:

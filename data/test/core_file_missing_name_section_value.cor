@@ -1,0 +1,7 @@
+* The NAME section should be accompanied by a value at the 15th column, which
+* is not the case here.
+NAME
+ROWS
+COLUMNS
+RHS
+ENDATA

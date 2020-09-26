@@ -19,13 +19,7 @@ class TimeParser(Parser):
 
     def __init__(self, location):
         super().__init__(location)
-
-        self._name: str = ""
         self._stage_offsets: List[StageOffset] = []
-
-    @property
-    def name(self) -> str:
-        return self._name
 
     @property
     def stage_offsets(self) -> List[StageOffset]:
