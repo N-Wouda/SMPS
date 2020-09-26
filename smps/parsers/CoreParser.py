@@ -25,7 +25,7 @@ class CoreParser(Parser):
             warnings.warn("Core file has no value for the NAME field.")
             logger.warning("Core file has no value for the NAME field.")
 
-    def _process_row(self, data_line: DataLine):
+    def _process_rows(self, data_line: DataLine):
         pass  # TODO
 
     def _process_columns(self, data_line: DataLine):
