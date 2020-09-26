@@ -31,27 +31,30 @@ class CoreParser(Parser):
     def __init__(self, location):
         super().__init__(location)
 
-        self._constraint_names: List[str] = []
-        self._senses: List[str] = []
-        self._rhs: np.array = []
-        self._constr2idx: Dict[str, int] = {}
+        # This list will contain all elements of the constrain matrix, as a list
+        # of (constraint, variable, value)-tuples.
+        self._elements: List[Tuple[str, str, float]] = []
 
         # This list contains all objective coefficients, as a list of
         # (variable, value)-tuples.
         self._obj_coeffs: List[Tuple[str, float]] = []
         self._objective_name = ""
 
-        # This list will contain all elements of the constrain matrix, as a list
-        # of (constraint, variable, value)-tuples.
-        self._elements: List[Tuple[str, str, float]] = []
+        # Constraints.
+        self._constraint_names: List[str] = []
+        self._senses: List[str] = []
+        self._rhs: np.array = []
+
+        # Variables.
         self._variable_names: List[str] = []
         self._types: List[str] = []
         self._lb: np.array = []
         self._ub: np.array = []
-        self._var2idx: Dict[str, int] = {}
 
-        # Flag for parsing integers
-        self._parse_ints = False
+        # Look-ups and flags.
+        self._constr2idx: Dict[str, int] = {}
+        self._var2idx: Dict[str, int] = {}
+        self._parse_ints = False  # flag for parsing integers
 
     @property
     def constraint_names(self) -> List[str]:

@@ -43,9 +43,10 @@ class Parser(ABC):
     def file_location(self) -> Path:
         """
         Returns a Python path to the file this parser processes. Assumes
-         existence has been checked before calling this method (see
-         ``file_exists``).
+         existence has been checked before calling this method.
         """
+        assert self.file_exists()
+
         for extension in self.FILE_EXTENSIONS:
             file = self._location.with_suffix(extension)
 
@@ -53,15 +54,11 @@ class Parser(ABC):
                 logger.debug(f"Found existing file {file}.")
                 return file
 
-        assert self.file_exists()
-
     def parse(self):
         """
         Parses the given file location.
         """
-        for line in self._line():
-            data_line = DataLine(line)
-
+        for data_line in self._read_file():
             # If any of these conditions is True, this data line is not
             # processed further.
             skip_when = (data_line.is_comment(),
@@ -71,27 +68,26 @@ class Parser(ABC):
             if any(skip_when):
                 continue
 
-            # This will likely never get hit, as ENDATA is generally the last
-            # line of an SMPS file. Nonetheless, it signals end of parsing, no
-            # matter what follows.
+            # This might never get hit as ENDATA is generally the last line of
+            # an SMPS file, so the ``continue`` above should end the parse.
             if self._state == "ENDATA":
                 break
 
             func = self.STEPS[self._state]
             func(self, data_line)
 
-    def _line(self) -> Generator[str, None, None]:
+    def _read_file(self) -> Generator[DataLine, None, None]:
         """
         Reads the file, one line at a time (generator).
 
         Yields
         ------
-        str
-            A single line in the input file.
+        DataLine
+            A DataLine wrapping a single line in the input file.
         """
         with open(str(self.file_location())) as fh:
             for line in fh:
-                yield line
+                yield DataLine(line)
 
     def _transition(self, data_line: DataLine) -> bool:
         """

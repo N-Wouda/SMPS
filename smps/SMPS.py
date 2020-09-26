@@ -26,6 +26,8 @@ class SMPS:
     """
 
     def __init__(self, location: Union[str, Path]):
+        # TODO allow specifying different locations for each file (i.e. 3, not
+        #  1 overall).
         self._location = Path(location)
 
         self._core = CoreParser(location)

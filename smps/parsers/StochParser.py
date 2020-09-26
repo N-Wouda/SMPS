@@ -16,6 +16,10 @@ class StochParser(Parser):
         "SCENARIOS": lambda self, data_line: self._process_scenarios(data_line),
     }
 
+    def __init__(self, location):
+        super().__init__(location)
+        # TODO
+
     def _process_stoch(self, data_line: DataLine):
         assert data_line.header() == "STOCH"
 
