@@ -14,7 +14,7 @@ def test_file_does_not_exist():
 
 
 def test_warns_missing_stoch_value():
-    parser = StochParser("data/test/stoch_file_missing_stoch_section_value")
+    parser = StochParser("data/test/stoch_missing_stoch_section_value")
 
     with assert_warns(UserWarning):
         parser.parse()

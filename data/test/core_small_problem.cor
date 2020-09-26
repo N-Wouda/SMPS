@@ -1,0 +1,18 @@
+* Small problem to test parsing the matrix coefficients goes correctly.
+NAME          CoefficientTest
+ROWS
+ N  OBJ
+ E  CONSTR1
+ E  CONSTR2
+ E  CONSTR3
+ G  CONSTR4
+ G  CONSTR5
+COLUMNS
+    X1        CONSTR1   1.0            CONSTR2   2.5
+    X1        CONSTR3   18
+    X2        CONSTR1   3.8            CONSTR2   4.9
+    X2        CONSTR3   1e3            CONSTR4   16.9
+    X3        CONSTR3   1.7
+    X4        CONSTR3   14             CONSTR4   7.23
+RHS
+ENDATA

@@ -21,13 +21,15 @@ Python:
   an extremely limited implementation of the SMPS format, and ties the parsed 
   data very tightly to the Gurobi solver.
 - [`smps`](https://github.com/robin-vjc/smps), which does not handle BLOCK and 
-  INDEP stochasticity, (linear) transformations, nor distributions.
+  INDEP stochasticity, (linear) transformations, nor distributions. This project
+  too relies on Gurobi's I/O facilities.
 
 These projects are limited in scope, as they exclude a large number of 
 acceptable SMPS formulations. Furthermore, there exists no project that
 correctly parses distributions (i.e., non-discrete SMPS specifications). A 
 Python infrastructure for stochastic programming requires solid support for
-parsing SMPS files, which the existing projects do not provide.
+parsing SMPS files in a solver-agnostic fashion, which the existing projects
+do not provide.
 
 ## How to use
 

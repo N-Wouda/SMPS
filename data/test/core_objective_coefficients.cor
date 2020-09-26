@@ -1,0 +1,18 @@
+* A small but varied collection of objective values, to test the implementation
+* can handle all the variety out there.
+NAME          ObjectiveTest
+ROWS
+ N  OBJ
+ E  CONSTR1
+COLUMNS
+    X1        OBJ       10.0
+    X2        CONSTR1   5.0            OBJ       8
+    X3        OBJ       -50.0
+    X4        OBJ       1e3
+    X5        OBJ       -18.98
+    X6        OBJ       12.54
+    X7        OBJ       1
+    X8        CONSTR1   3              OBJ       150
+    X9        OBJ       10.0
+RHS
+ENDATA

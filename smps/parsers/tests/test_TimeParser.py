@@ -14,7 +14,7 @@ def test_file_does_not_exist():
 
 
 def test_warns_missing_time_value():
-    parser = TimeParser("data/test/time_file_missing_time_section_value")
+    parser = TimeParser("data/test/time_missing_time_section_value")
 
     with assert_warns(UserWarning):
         parser.parse()
@@ -22,14 +22,14 @@ def test_warns_missing_time_value():
 
 def test_ignores_data_beyond_endata():
     # This is a correct file with three time periods, for contrast.
-    parser = TimeParser("data/test/time_file_data_before_endata")
+    parser = TimeParser("data/test/time_data_before_endata")
     parser.parse()
 
     assert_equal(parser.name, "Test")
     assert_equal(len(parser.stage_offsets), 3)
 
     # This is the same file, but now the ENDATA field precedes the PERIODS data.
-    parser = TimeParser("data/test/time_file_data_beyond_endata")
+    parser = TimeParser("data/test/time_data_beyond_endata")
     parser.parse()
 
     assert_equal(parser.name, "Test")

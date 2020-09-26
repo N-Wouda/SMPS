@@ -1,0 +1,17 @@
+* A small but varied collection of RHS values, to test the implementation
+* can handle all the variety out there.
+NAME          RhsTest
+ROWS
+ N  OBJ
+ E  CONSTR1
+ E  CONSTR2
+ E  CONSTR3
+ G  CONSTR4
+ G  CONSTR5
+ L  CONSTR6
+COLUMNS
+RHS
+    RHS       CONSTR1   8.0            CONSTR2   5.0
+    RHS       CONSTR3   1e6
+    RHS       CONSTR4   8.0            CONSTR5   12
+ENDATA

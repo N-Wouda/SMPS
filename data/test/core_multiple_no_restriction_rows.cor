@@ -1,0 +1,10 @@
+* This core file defines multiple rows with "no restriction". The first is taken
+* as the objective, any later rows should be ignored.
+NAME          MultiNoRestr
+ROWS
+ N  OBJ1
+ N  OBJ2
+ N  OBJ3
+COLUMNS
+RHS
+ENDATA

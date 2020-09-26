@@ -1,0 +1,19 @@
+* This core file specifies two sets of integral variables.
+NAME          IntMarkerTest
+ROWS
+ N  OBJ
+COLUMNS
+    MARK      'MARKER'                 'INTORG'
+    X1        OBJ       10.0
+    X2        OBJ       10.0
+    MARK      'MARKER'                 'INTEND'
+    X3        OBJ       10.0
+    X4        OBJ       10.0
+    X5        OBJ       10.0
+    MARK      'MARKER'                 'INTORG'
+    X6        OBJ       10.0
+    X7        OBJ       10.0
+    MARK      'MARKER'                 'INTEND'
+    X8        OBJ       10.0
+RHS
+ENDATA

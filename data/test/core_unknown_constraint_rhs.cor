@@ -1,0 +1,12 @@
+* This file has a strange (new) constraint name in the RHS data section. That
+* is not the place where new constraints can be introduced, and likely points
+* to a data issue the implementation should warn about.
+NAME          UnknownConstraintRhs
+ROWS
+ N  OBJ
+COLUMNS
+    X1        OBJ       10.0
+RHS
+* "STRANGE" is a new constraint that was not introduced in ROWS.
+    RHS       STRANGE      8.0
+ENDATA

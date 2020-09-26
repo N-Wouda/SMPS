@@ -1,0 +1,13 @@
+* This core file defines the STRANGE section, that is not part of the MPS
+* format. If the parser does not understand a section, it is skipped and a
+* warning is issued.
+NAME          StrangeTest
+ROWS
+STRANGE
+* This data is fine for a ROWS section, and we want to ensure it is not parsed
+* now that we are in the STRANGE section (which should be skipped).
+ E  DEMAND2
+ E  DEMAND3
+COLUMNS
+RHS
+ENDATA
