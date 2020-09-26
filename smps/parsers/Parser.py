@@ -115,7 +115,7 @@ class Parser(ABC):
         Returns
         -------
         bool
-            True if after transitioning, this line should be skipped, False
+            True if after transitioning this line should be skipped, False
             otherwise.
         """
         assert data_line.is_header()

@@ -1,5 +1,6 @@
 import logging
 import warnings
+from typing import List
 
 from smps.classes import DataLine
 from .Parser import Parser
@@ -22,6 +23,41 @@ class CoreParser(Parser):
         "BOUNDS": lambda self, data_line: self._process_bounds(data_line),
         "RANGES": lambda self, data_line: self._process_ranges(data_line),
     }
+
+    def __init__(self, location: str):
+        super().__init__(location)
+
+        self._constraint_names = []
+        self._constraint_senses = []
+        self._objective_name = ""
+        # TODO
+
+    @property
+    def constraint_names(self) -> List[str]:
+        """
+        Returns the constraint names, as an ordered list. The first name belongs
+        to the first constraint, the second to the second constraint, and so on.
+        This list excludes the name of the objective, which can be queried as
+        ``objective_name``.
+        """
+        return self._constraint_names
+
+    @property
+    def constraint_senses(self) -> List[str]:
+        """
+        Returns the constraint senses, as an ordered list. The first sense
+        belongs to the first constraint, the second to the second constraint,
+        and so on. This list contains values in {'E', 'L', 'G'}, indicating
+        equality, less-than-equal, or greater-than-equal senses.
+        """
+        return self._constraint_senses
+
+    @property
+    def objective_name(self) -> str:
+        """
+        Objective function name.
+        """
+        return self._objective_name
 
     def _process_name(self, data_line: DataLine):
         assert data_line.header() == "NAME"
