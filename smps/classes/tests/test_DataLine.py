@@ -10,7 +10,7 @@ def test_len(length, string):
     Tests if the __len__ function correctly looks at the raw string's length.
     """
     data_line = DataLine(string)
-    assert_equal(length, len(data_line))
+    assert_equal(len(data_line), length)
 
 
 def test_str():

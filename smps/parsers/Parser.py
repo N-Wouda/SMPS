@@ -68,6 +68,9 @@ class Parser(ABC):
             if data_line.is_comment() or self._transition(line):
                 continue
 
+            # This will likely never get hit, as ENDATA is generally the last
+            # line of an SMPS file. Nonetheless, it signals end of parsing, no
+            # matter what follows.
             if self._state == "ENDATA":
                 break
 
@@ -103,6 +106,9 @@ class Parser(ABC):
             True if this line is a section header, False otherwise.
         """
         clean = line.strip().upper()
+
+        if clean == self._state:
+            return False  # this is very likely the first state.
 
         if clean in self.STEPS or clean == "ENDATA":
             logger.info(f"Now parsing the {clean} section.")
