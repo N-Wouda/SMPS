@@ -2,6 +2,8 @@ import logging
 import warnings
 from typing import List, Tuple
 
+import numpy as np
+
 from smps.classes import DataLine
 from .Parser import Parser
 
@@ -44,7 +46,9 @@ class CoreParser(Parser):
         self._variable_names = []
         self._var2idx = {}
 
-        # TODO
+        self._rhs: np.array = []
+        self._var_lb: np.array = []
+        self._var_ub: np.array = []
 
     @property
     def constraint_names(self) -> List[str]:
@@ -80,6 +84,13 @@ class CoreParser(Parser):
         first variable, the second to the second variable, and so on.
         """
         return self._variable_names
+
+    @property
+    def rhs(self) -> np.array:
+        """
+        Constraint right-hand sides, as a vector with one entry per constraint.
+        """
+        return self._rhs
 
     def _process_name(self, data_line: DataLine):
         assert data_line.header() == "NAME"
@@ -126,13 +137,24 @@ class CoreParser(Parser):
             self._add(constr, var, value)
 
     def _process_rhs(self, data_line: DataLine):
-        pass  # TODO
+        if len(self._rhs) != len(self.constraint_names):
+            self._rhs = np.zeros(len(self.constraint_names))
+
+        # TODO
 
     def _process_bounds(self, data_line: DataLine):
-        pass  # TODO
+        if len(self._var_lb) != len(self._var_ub) != len(self.variable_names):
+            self._var_lb = np.zeros(len(self.variable_names))
+            self._var_ub = np.full(len(self.variable_names), np.inf)
+
+        # TODO
 
     def _process_ranges(self, data_line: DataLine):
-        pass  # TODO
+        if len(self._var_lb) != len(self._var_ub) != len(self.variable_names):
+            self._var_lb = np.zeros(len(self.variable_names))
+            self._var_ub = np.full(len(self.variable_names), np.inf)
+
+        # TODO
 
     def _add(self, constr: str, var: str, value: float):
         if constr == self.objective_name:
