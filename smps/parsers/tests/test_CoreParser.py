@@ -116,6 +116,24 @@ def test_integer_marker_columns():
     assert_equal(parser.types, ['I', 'I', 'C', 'C', 'C', 'I', 'I', 'C'])
 
 
+def test_matrix_coefficients():
+    """
+    Tests if the matrix coefficients are parsed correctly on a small file.
+    """
+    parser = CoreParser("data/test/core_small_problem.cor")
+    parser.parse()
+
+    matrix = parser.coefficients.todense()
+    expected = [[1.0, 3.8, 0, 0],
+                [2.5, 4.9, 0, 0],
+                [18, 1e3, 1.7, 14],
+                [0, 16.9, 0, 7.23],
+                [0, 0, 0, 0]]
+
+    assert_equal(matrix.shape, (5, 4))
+    assert_almost_equal(matrix, expected)
+
+
 def test_rhs():
     """
     Tests if the RHS coefficients are parsed correctly on a small file.
