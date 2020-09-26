@@ -11,19 +11,22 @@ TODO pip install
 
 ## Motivation
 
-To the best of my knowledge, there are two projects for parsing SMPS files in 
+To the best of my knowledge, there are three projects for parsing SMPS files in 
 Python:
 
 - [`pysmps`](https://github.com/jmaerte/pysmps), which parses (S)MPS
   problems with stochasticity defined in BLOCK or INDEP form. SCENARIOS are not
-  supported, nor are distributions.
+  supported, and there is only limited support for distributions and sampling.
+- [`readSMPS-Py`](https://github.com/siavashtab/readSMPS-Py), which considers
+  an extremely limited implementation of the SMPS format, and ties the parsed 
+  data very tightly to the Gurobi solver.
 - [`smps`](https://github.com/robin-vjc/smps), which does not handle BLOCK and 
   INDEP stochasticity, (linear) transformations, nor distributions.
 
-These projects are both limited in scope, as they exclude a large number of 
+These projects are limited in scope, as they exclude a large number of 
 acceptable SMPS formulations. Furthermore, there exists no project that
 correctly parses distributions (i.e., non-discrete SMPS specifications). A 
-Python infrastructure for stochastic programming requires full support for
+Python infrastructure for stochastic programming requires solid support for
 parsing SMPS files, which the existing projects do not provide.
 
 ## How to use
@@ -44,4 +47,3 @@ In case you have used this package in a published work, please consider citing i
 ## References
 
 TODO
-

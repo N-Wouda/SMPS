@@ -1,6 +1,32 @@
+import pytest
 from numpy.testing import assert_, assert_almost_equal, assert_equal
 
 from smps.classes import DataLine
+
+
+@pytest.mark.parametrize("length,string", [(1, "a"), (2, "ab"), (16, "ab" * 8)])
+def test_len(length, string):
+    """
+    Tests if the __len__ function correctly looks at the raw string's length.
+    """
+    data_line = DataLine(string)
+    assert_equal(len(data_line), length)
+
+
+def test_str():
+    """
+    Tests if the string representation is sensible.
+    """
+    data_line = DataLine(" N  OBJ")  # from the LandS.cor file.
+    assert_equal(str(data_line), " N  OBJ")
+
+
+def test_repr():
+    """
+    Tests if the specific repr implementation is sensible.
+    """
+    data_line = DataLine(" N  OBJ")  # from the LandS.cor file.
+    assert_equal(repr(data_line), "DataLine(' N  OBJ')")
 
 
 def test_indicator_and_name():
@@ -11,6 +37,20 @@ def test_indicator_and_name():
 
     assert_equal(data_line.indicator(), "N")
     assert_equal(data_line.name(), "OBJ")
+
+
+def test_comment():
+    """
+    Tests if the DataLine class correctly detects comment lines.
+    """
+    data_line = DataLine("* bogus stuff")
+    assert_(data_line.is_comment())
+
+    data_line = DataLine("    * BOGUS")
+    assert_(data_line.is_comment())
+
+    data_line = DataLine(" N  OBJ")
+    assert_(not data_line.is_comment())
 
 
 def test_first_data_entry():

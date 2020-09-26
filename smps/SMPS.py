@@ -1,4 +1,6 @@
+import warnings
 from pathlib import Path
+from typing import Union
 
 from smps.parsers import CoreParser, StochParser, TimeParser
 
@@ -20,7 +22,7 @@ class SMPS:
         When one of the CORE, TIME, or STOCH files does not exist.
     """
 
-    def __init__(self, location):
+    def __init__(self, location: Union[str, Path]):
         self._location = Path(location)
 
         self._core = CoreParser(location)
@@ -37,8 +39,12 @@ class SMPS:
         self._time.parse()
         self._stoch.parse()
 
+        if len({self._stoch.name, self._core.name, self._time.name}) != 1:
+            warnings.warn("The problem names in the CORE, TIME, and STOCH files"
+                          " do not agree.")
+
     @property
-    def location(self):
+    def location(self) -> Path:
         """
         Returns the file-system location of the SMPS triplet of files, without
         any extensions.
