@@ -1,7 +1,7 @@
 import logging
 import warnings
 from functools import lru_cache
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 from scipy.sparse import coo_matrix
@@ -28,13 +28,13 @@ class CoreParser(Parser):
         "RANGES": lambda self, data_line: self._process_ranges(data_line),
     }
 
-    def __init__(self, location: str):
+    def __init__(self, location):
         super().__init__(location)
 
-        self._constraint_names = []
-        self._senses = []
+        self._constraint_names: List[str] = []
+        self._senses: List[str] = []
         self._rhs: np.array = []
-        self._constr2idx = {}
+        self._constr2idx: Dict[str, int] = {}
 
         # This list contains all objective coefficients, as a list of
         # (variable, value)-tuples.
@@ -44,11 +44,11 @@ class CoreParser(Parser):
         # This list will contain all elements of the constrain matrix, as a list
         # of (constraint, variable, value)-tuples.
         self._elements: List[Tuple[str, str, float]] = []
-        self._variable_names = []
-        self._types = []
+        self._variable_names: List[str] = []
+        self._types: List[str] = []
         self._lb: np.array = []
         self._ub: np.array = []
-        self._var2idx = {}
+        self._var2idx: Dict[str, int] = {}
 
         # Flag for parsing integers
         self._parse_ints = False
@@ -131,14 +131,14 @@ class CoreParser(Parser):
         return self._variable_names
 
     @property
-    def types(self) -> np.array:
+    def types(self) -> List[str]:
         """
-        Returns the variable types, as an array. These types are 'I' for
-        integer, 'C' for a continuous variable, and 'B' for a binary variable.
-        The first type belongs to the first variable, the second to the second
-        variable, and so on.
+        Returns the variable types, as a list. These types are 'I' for integers,
+        'C' for a continuous variable, and 'B' for a binary variable. The first
+        type belongs to the first variable, the second to the second variable,
+        and so on.
         """
-        return np.array(self._types)
+        return self._types
 
     @property
     def lower_bounds(self) -> np.array:

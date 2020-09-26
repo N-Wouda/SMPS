@@ -134,6 +134,21 @@ def test_matrix_coefficients():
     assert_almost_equal(matrix, expected)
 
 
+def test_variable_and_constraint_names():
+    """
+    Tests if the variable and constraint names are parsed correctly on a small
+    instance.
+    """
+    parser = CoreParser("data/test/core_small_problem.cor")
+    parser.parse()
+
+    constraints = ["CONSTR1", "CONSTR2", "CONSTR3", "CONSTR4", "OTHER"]
+    assert_equal(parser.constraint_names, constraints)
+
+    variables = ["X1", "X2", "X3", "X4"]
+    assert_equal(parser.variable_names, variables)
+
+
 def test_rhs():
     """
     Tests if the RHS coefficients are parsed correctly on a small file.
