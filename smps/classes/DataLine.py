@@ -33,6 +33,16 @@ class DataLine:
     def is_comment(self) -> bool:
         return self._raw.lstrip().startswith("*")
 
+    def is_header(self) -> bool:
+        """
+        If True, this DataLine defines a section header. False otherwise.
+        """
+        return self._raw[0] not in {' ', '*'}
+
+    def header(self) -> str:
+        header, *_ = self._raw.split()
+        return header.strip().upper()
+
     def name(self) -> str:
         return self._raw[4:12].strip()
 
@@ -52,6 +62,9 @@ class DataLine:
 
     def second_number(self) -> float:
         return float(self._raw[49:61].strip())
+
+    def raw(self) -> str:
+        return self._raw
 
     def __len__(self) -> int:
         return len(self._raw)

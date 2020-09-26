@@ -17,11 +17,13 @@ class StochParser(Parser):
     }
 
     def _process_stoch(self, data_line: DataLine):
+        assert data_line.header() == "STOCH"
+
         if len(data_line) > 15:
             self._name = data_line.first_data_name()
         else:
-            warnings.warn("Stoch file has no value for the NAME field.")
-            logger.warning("Stoch file has no value for the NAME field.")
+            warnings.warn("Stoch file has no value for the STOCH field.")
+            logger.warning("Stoch file has no value for the STOCH field.")
 
     def _process_indep(self, data_line: DataLine):
         pass  # TODO
@@ -29,12 +31,12 @@ class StochParser(Parser):
     def _process_blocks(self, data_line: DataLine):
         pass  # TODO
 
-    def process_scenarios(self, data_line: DataLine):
+    def _process_scenarios(self, data_line: DataLine):
         pass  # TODO
 
-    def _transition(self, line):
-        res = super()._transition(line)
-        _, *stoch = line.strip().split()
+    def _transition(self, data_line):
+        res = super()._transition(data_line)
+        _, *stoch = data_line.raw().split()
 
         if self._state in {"INDEP", "BLOCKS", "STOCH"} and len(stoch) != 0:
             pass  # TODO: this indicates the type of stochasticity

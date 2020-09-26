@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from abc import ABC
 from pathlib import Path
 from typing import Callable, Dict, Generator, List, Union
@@ -71,7 +72,13 @@ class Parser(ABC):
         for line in self._line():
             data_line = DataLine(line)
 
-            if data_line.is_comment() or self._transition(line):
+            # If any of these conditions is True, this data line is not
+            # processed further.
+            skip_when = (data_line.is_comment(),
+                         self._state == "SKIP",
+                         data_line.is_header() and self._transition(data_line))
+
+            if any(skip_when):
                 continue
 
             # This will likely never get hit, as ENDATA is generally the last
@@ -96,32 +103,38 @@ class Parser(ABC):
             for line in fh:
                 yield line
 
-    def _transition(self, line: str) -> bool:
+    def _transition(self, data_line: DataLine) -> bool:
         """
-        Checks if the passed-in line defines a section header, in which case
-        we are about to parse a new part of the file.
+        Transitions to parsing the next section, defined by this line.
 
         Parameters
         ----------
-        line : str
-            The line to test.
+        data_line : DataLine
+            The section header line.
 
         Returns
         -------
         bool
-            True if this line is a section header, False otherwise.
+            True if after transitioning, this line should be skipped, False
+            otherwise.
         """
-        # Some sections has additional definitions in their header. Here we
-        # care only about the first value.
-        parts = line.strip().split()
-        clean = parts[0].upper()
+        assert data_line.is_header()
+        header = data_line.header()
 
-        if clean == self._state:
-            return False  # this is very likely the first state.
+        if header == self._state:
+            # This is very likely the first state, which has a name attribute
+            # that should be parsed.
+            return False
 
-        if clean in self.STEPS or clean == "ENDATA":
-            logger.info(f"Now parsing the {clean} section.")
-            self._state = clean
+        if header in self.STEPS or header == "ENDATA":
+            logger.info(f"Now parsing the {header} section.")
+
+            self._state = header
             return True
 
-        return False
+        msg = f"Section {header} is not understood - skipping its entries."
+        warnings.warn(msg)
+        logger.warning(msg)
+
+        self._state = "SKIP"
+        return True

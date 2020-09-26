@@ -1,8 +1,11 @@
+import logging
 import warnings
 from pathlib import Path
 from typing import Union
 
 from smps.parsers import CoreParser, StochParser, TimeParser
+
+logger = logging.getLogger(__name__)
 
 
 class SMPS:
@@ -40,8 +43,9 @@ class SMPS:
         self._stoch.parse()
 
         if len({self._stoch.name, self._core.name, self._time.name}) != 1:
-            warnings.warn("The problem names in the CORE, TIME, and STOCH files"
-                          " do not agree.")
+            msg = "The names in the CORE, TIME, and STOCH files do not agree."
+            logger.warning(msg)
+            warnings.warn(msg)
 
     @property
     def location(self) -> Path:

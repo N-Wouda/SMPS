@@ -26,6 +26,8 @@ class TimeParser(Parser):
         return self._stage_offsets
 
     def _process_time(self, data_line: DataLine):
+        assert data_line.header() == "TIME"
+
         if len(data_line) > 15:
             self._name = data_line.first_data_name()
         else:
