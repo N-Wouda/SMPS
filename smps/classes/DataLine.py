@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class DataLine:
     """
     Parses a single data line in the (S)MPS input, based on the column positions
@@ -17,6 +22,7 @@ class DataLine:
     """
 
     def __init__(self, data_line: str):
+        logger.debug(f"Creating DataLine instance with '{data_line}'.")
         self._raw = data_line
 
     def indicator(self) -> str:
@@ -45,8 +51,11 @@ class DataLine:
     def second_number(self) -> float:
         return float(self._raw[49:61].strip())
 
+    def __len__(self) -> int:
+        return len(self._raw)
+
     def __str__(self) -> str:
         return self._raw
 
     def __repr__(self) -> str:
-        return "DataLine('{raw}')".format(raw=str(self))
+        return f"DataLine('{self}')"

@@ -3,7 +3,9 @@ from .Parser import Parser
 
 class StochParser(Parser):
     FILE_EXTENSIONS = [".sto", ".STO", ".stoch", ".STOCH"]
-    SECTIONS = ["STOCH", "INDEP", "BLOCKS", "SCENARIOS", "ENDATA"]
-
-    def _process_data_line(self, data_line):
-        pass  # TODO
+    STEPS = {
+        "STOCH": lambda self, data_line: None,  # TODO
+        "INDEP": lambda self, data_line: None,  # TODO
+        "BLOCKS": lambda self, data_line: None,  # TODO
+        "SCENARIOS": lambda self, data_line: None,  # TODO
+    }

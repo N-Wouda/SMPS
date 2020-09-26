@@ -3,7 +3,11 @@ from .Parser import Parser
 
 class CoreParser(Parser):
     FILE_EXTENSIONS = [".cor", ".COR", ".core", ".CORE"]
-    SECTIONS = ["NAME", "ROWS", "COLUMNS", "RHS", "BOUNDS", "RANGES", "ENDATA"]
-
-    def _process_data_line(self, data_line):
-        pass  # TODO
+    STEPS = {
+        "NAME": lambda self, data_line: None,  # TODO
+        "ROWS": lambda self, data_line: None,  # TODO
+        "COLUMNS": lambda self, data_line: None,  # TODO
+        "RHS": lambda self, data_line: None,  # TODO
+        "BOUNDS": lambda self, data_line: None,  # TODO
+        "RANGES": lambda self, data_line: None,  # TODO
+    }

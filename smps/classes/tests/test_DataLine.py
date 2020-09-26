@@ -1,6 +1,16 @@
+import pytest
 from numpy.testing import assert_, assert_almost_equal, assert_equal
 
 from smps.classes import DataLine
+
+
+@pytest.mark.parametrize("length,string", [(1, "a"), (2, "ab"), (16, "ab" * 8)])
+def test_len(length, string):
+    """
+    Tests if the __len__ function correctly looks at the raw string's length.
+    """
+    data_line = DataLine(string)
+    assert_equal(length, len(data_line))
 
 
 def test_str():

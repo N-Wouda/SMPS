@@ -1,15 +1,28 @@
-from abc import ABC, abstractmethod
+from __future__ import annotations
+
+import logging
+from abc import ABC
 from pathlib import Path
-from typing import Generator, List, Union
+from typing import Callable, Dict, Generator, List, Union
 
 from smps.classes import DataLine
 
+logger = logging.getLogger(__name__)
+
 
 class Parser(ABC):
-    FILE_EXTENSIONS: List[str] = []  # Acceptable file extensions.
-    SECTIONS: List[str] = []  # Header (file) sections.
+    # Accepted file extensions.
+    FILE_EXTENSIONS: List[str] = []
+
+    # Parsing functions for each header section. Since we cannot forward declare
+    # these nicely, this dict is a bit ugly in the implementing classes.
+    STEPS: Dict[str, Callable[[Parser, DataLine], None]]
 
     def __init__(self, location: Union[str, Path]):
+        logger.debug(f"Creating Parser instance with '{location}'.")
+
+        # From Py3.7+ we can rely on insertion order as default behaviour.
+        self._state = next(iter(self.STEPS.keys()))
         self._location = Path(location)
 
     def file_exists(self) -> bool:
@@ -39,8 +52,11 @@ class Parser(ABC):
         assert self.file_exists()
 
         for extension in self.FILE_EXTENSIONS:
-            if self._location.with_suffix(extension).exists():
-                return self._location.with_suffix(extension)
+            file = self._location.with_suffix(extension)
+
+            if file.exists():
+                logger.debug(f"Found existing file {file}.")
+                return file
 
     def parse(self):
         """
@@ -52,7 +68,11 @@ class Parser(ABC):
             if data_line.is_comment() or self._transition(line):
                 continue
 
-            self._process_data_line(data_line)
+            if self._state == "ENDATA":
+                break
+
+            func = self.STEPS[self._state]
+            func(self, data_line)
 
     def _line(self) -> Generator[str, None, None]:
         """
@@ -66,18 +86,6 @@ class Parser(ABC):
         with open(str(self.file_location())) as fh:
             for line in fh:
                 yield line
-
-    @abstractmethod
-    def _process_data_line(self, data_line: DataLine):
-        """
-        Processes the given data line.
-
-        Parameters
-        ----------
-        data_line : DataLine
-            A single line in the file that's being parsed.
-        """
-        pass  # no-op, implementation in concrete implementations
 
     def _transition(self, line: str) -> bool:
         """
@@ -94,4 +102,11 @@ class Parser(ABC):
         bool
             True if this line is a section header, False otherwise.
         """
-        pass  # TODO
+        clean = line.strip().upper()
+
+        if clean in self.STEPS or clean == "ENDATA":
+            logger.info(f"Now parsing the {clean} section.")
+            self._state = clean
+            return True
+
+        return False
