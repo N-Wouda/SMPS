@@ -118,23 +118,35 @@ def test_integer_marker_columns():
 
 def test_rhs():
     """
-    TODO
+    Tests if the RHS coefficients are parsed correctly on a small file.
     """
-    pass
+    parser = CoreParser("data/test/core_rhs.cor")
+    parser.parse()
+
+    assert_almost_equal(parser.rhs, [8.0, 5.0, 1e6, 8.0, 12, 0])
 
 
 def test_rhs_lands():
     """
-    TODO
+    Tests if the implementation correctly parses the RHS of the LandS instance.
     """
-    pass
+    parser = CoreParser("data/electric/LandS.cor")
+    parser.parse()
+
+    # Only the first two (first-stage) constraints have non-zero RHS specified
+    # here - the others follow from the STO file.
+    assert_almost_equal(parser.rhs, [14, 120, 0, 0, 0, 0, 0, 0, 0])
 
 
 def test_rhs_warns_unknown_constraint():
     """
-    TODO
+    This core file has an unknown constraint name in the RHS data section. The
+    implementation should warn about this.
     """
-    pass
+    parser = CoreParser("data/test/core_unknown_constraint_rhs.cor")
+
+    with assert_warns(UserWarning):
+        parser.parse()
 
 
 def test_parse_bound_types():
@@ -187,7 +199,7 @@ def test_parse_bound_types():
 
 def test_raises_unknown_bound_type():
     """
-    Tests a ValueError is raised when an unknown bound type is encountered in
+    Tests if a ValueError is raised when an unknown bound type is encountered in
     the BOUNDS section.
     """
     parser = CoreParser("data/test/core_unknown_bound_type")

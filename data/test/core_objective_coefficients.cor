@@ -15,5 +15,4 @@ COLUMNS
     X8        CONSTR1   3              OBJ       150
     X9        OBJ       10.0
 RHS
-BOUNDS
 ENDATA
