@@ -48,7 +48,7 @@ class CoreParser(Parser):
         Returns the constraint senses, as an ordered list. The first sense
         belongs to the first constraint, the second to the second constraint,
         and so on. This list contains values in {'E', 'L', 'G'}, indicating
-        equality, less-than-equal, or greater-than-equal senses.
+        equality, less-than-equal, or greater-than-equal senses, respectively.
         """
         return self._constraint_senses
 
@@ -69,7 +69,21 @@ class CoreParser(Parser):
             logger.warning("Core file has no value for the NAME field.")
 
     def _process_rows(self, data_line: DataLine):
-        pass  # TODO
+        assert data_line.indicator() in set("NELG")
+
+        # This is a "no restriction" constraint, which indicates an objective
+        # function. There can be more than one such constraints, but there can
+        # only be one objective. We take the first such row as the objective,
+        # and then ignore any subsequent "no restriction" rows.
+        if data_line.indicator() == 'N':
+            if self.objective_name == "":
+                logger.debug(f"Setting {data_line.name()} as objective.")
+                self._objective_name = data_line.name()
+
+            return
+        else:
+            self._constraint_names.append(data_line.name())
+            self._constraint_senses.append(data_line.indicator())
 
     def _process_columns(self, data_line: DataLine):
         pass  # TODO

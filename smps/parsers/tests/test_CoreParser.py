@@ -32,4 +32,46 @@ def test_warns_and_skips_strange_section():
     assert_equal(len(parser.constraint_senses), 0)
     assert_equal(len(parser.objective_name), 0)
 
+
+def test_constraint_rows_lands():
+    """
+    Tests if the constraints and objective of the LandS problem are correctly
+    parsed.
+    """
+    parser = CoreParser("data/electric/LandS")
+    parser.parse()
+
+    # This is pretty much the ROWS section of the LandS problem, excluding the
+    # objective ("OBJ").
+    values = [('G', "MINCAP"),
+              ('L', "BUDGET"),
+              ('L', "OPLIM1"),
+              ('L', "OPLIM2"),
+              ('L', "OPLIM3"),
+              ('L', "OPLIM4"),
+              ('E', "DEMAND1"),
+              ('E', "DEMAND2"),
+              ('E', "DEMAND3")]
+
+    senses, names = zip(*values)
+
+    assert_equal(parser.constraint_names, names)
+    assert_equal(parser.constraint_senses, senses)
+    assert_equal(parser.objective_name, "OBJ")
+
+
+def test_ignore_multiple_no_restriction_rows():
+    """
+    Tests that in the case multiple rows have "no restriction" (i.e., 'N'), only
+    the first is taken for the objective, and any later rows are ignored.
+    """
+    parser = CoreParser("data/test/core_multiple_no_restriction_rows.cor")
+    parser.parse()
+
+    # There are three 'N' rows - the first is names "OBJ1", and should become
+    # the objective. All others should be ignored.
+    assert_equal(len(parser.constraint_names), 0)
+    assert_equal(len(parser.constraint_senses), 0)
+    assert_equal(parser.objective_name, "OBJ1")
+
 # TODO
