@@ -3,6 +3,22 @@ from numpy.testing import assert_, assert_almost_equal, assert_equal
 from smps.classes import DataLine
 
 
+def test_str():
+    """
+    Tests if the string representation is sensible.
+    """
+    data_line = DataLine(" N  OBJ")  # from the LandS.cor file.
+    assert_equal(str(data_line), " N  OBJ")
+
+
+def test_repr():
+    """
+    Tests if the specific repr implementation is sensible.
+    """
+    data_line = DataLine(" N  OBJ")  # from the LandS.cor file.
+    assert_equal(repr(data_line), "DataLine(' N  OBJ')")
+
+
 def test_indicator_and_name():
     """
     Tests if the indicator and name are correctly parsed.
