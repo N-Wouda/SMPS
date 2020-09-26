@@ -17,15 +17,26 @@ class TimeParser(Parser):
         "PERIODS": lambda self, data_line: self._process_periods(data_line),
     }
 
-    _name: str = ""
-    _stage_offsets: List[StageOffset] = []
+    def __init__(self, location):
+        super().__init__(location)
+
+        self._name: str = ""
+        self._stage_offsets: List[StageOffset] = []
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def stage_offsets(self) -> List[StageOffset]:
+        return self._stage_offsets
 
     def _process_time(self, data_line: DataLine):
         if len(data_line) > 15:
             self._name = data_line.first_data_name()
         else:
-            warnings.warn("Time file has no entry for the TIME field.")
-            logger.warning("Time file has no entry for the TIME field.")
+            warnings.warn("Time file has no value for the TIME field.")
+            logger.warning("Time file has no value for the TIME field.")
 
     def _process_periods(self, data_line: DataLine):
         # TODO what about IMPLICIT/EXPLICIT?

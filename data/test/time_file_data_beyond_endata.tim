@@ -1,0 +1,10 @@
+* This time file has data beyond its ENDATA header. That data should be ignored
+* when parsing the file.
+TIME          Test
+PERIODS
+ENDATA
+* Correct data for the PERIODS section, but preceeded by an ENDATA header. This
+* file contrasts the "time_file_data_before_endata.tim" file.
+    COL1      ROW1                     PERIOD1
+    COL6      ROW3                     PERIOD2
+    COL8      ROW19                    PERIOD3

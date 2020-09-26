@@ -1,4 +1,4 @@
-* The TIME section should be accompanied by a value at the 40th column, which
+* The TIME section should be accompanied by a value at the 15th column, which
 * is not the case here.
 TIME
 PERIODS
