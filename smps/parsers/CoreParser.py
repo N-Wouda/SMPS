@@ -31,6 +31,9 @@ class CoreParser(Parser):
         self._constraint_senses = []
         self._objective_name = ""
 
+        # This list will contain all elements of the constrain matrix, as a
+        # list of (row, column, value)-tuples. That's a fairly convenient
+        # way to construct the sparse matrices later.
         self._elements: List[Tuple[str, str, float]] = []
         # TODO
 
@@ -88,17 +91,18 @@ class CoreParser(Parser):
             self._constraint_senses.append(data_line.indicator())
 
     def _process_columns(self, data_line: DataLine):
+        # TODO track var names and indices
         var = data_line.name()
         constr = data_line.first_data_name()
         value = data_line.first_number()
 
-        self._elements.append((var, constr, value))
+        self._elements.append((constr, var, value))
 
         if data_line.has_second_data_entry():
             constr = data_line.second_data_name()
             value = data_line.second_number()
 
-            self._elements.append((var, constr, value))
+            self._elements.append((constr, var, value))
 
     def _process_rhs(self, data_line: DataLine):
         pass  # TODO
