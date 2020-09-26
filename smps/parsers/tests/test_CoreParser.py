@@ -106,9 +106,14 @@ def test_objective_coefficients_lands():
 
 def test_integer_marker_columns():
     """
-    TODO
+    Tests if the implementation correctly parses integer start and end markers.
     """
-    pass
+    parser = CoreParser("data/test/core_integer_markers.cor")
+    parser.parse()
+
+    # This example file has two parts that define integer variables. Both
+    # should be picked-up correctly.
+    assert_equal(parser.types, ['I', 'I', 'C', 'C', 'C', 'I', 'I', 'C'])
 
 
 def test_rhs():
