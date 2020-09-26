@@ -1,0 +1,30 @@
+* This core file contains all bound types we accept, and is used to test these
+* all parse correctly.
+NAME          BoundsTest
+ROWS
+ N  OBJ
+COLUMNS
+    X1        OBJ       10.0
+    X2        OBJ       10.0
+    X3        OBJ       10.0
+    X4        OBJ       10.0
+    X5        OBJ       10.0
+    X6        OBJ       10.0
+    X7        OBJ       10.0
+    X8        OBJ       10.0
+    X9        OBJ       10.0
+RHS
+BOUNDS
+ LO BND       X1        4
+ UP BND       X2        5
+ FX BND       X3        6
+* These types do not specify a value, per se, as that is clear from the bound
+* type.
+ FR BND       X4
+ MI BND       X5
+ PL BND       X6
+ BV BND       X7
+* The following do have values.
+ LI BND       X8        7
+ UI BND       X9        8
+ENDATA

@@ -1,0 +1,12 @@
+* This core file contains a strange bound type, XX, for which the implementation
+* should raise an error.
+NAME          BoundsTest
+ROWS
+ N  OBJ
+COLUMNS
+    X1        OBJ       10.0
+RHS
+BOUNDS
+* This type (XX) does not exist.
+ XX BND       X1        4
+ENDATA

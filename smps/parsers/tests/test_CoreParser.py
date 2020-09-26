@@ -1,4 +1,6 @@
-from numpy.testing import assert_, assert_equal, assert_warns
+import numpy as np
+from numpy.testing import (assert_, assert_almost_equal, assert_equal,
+                           assert_raises, assert_warns)
 
 from smps.parsers import CoreParser
 
@@ -14,14 +16,14 @@ def test_file_does_not_exist():
 
 
 def test_warns_missing_name_value():
-    parser = CoreParser("data/test/core_file_missing_name_section_value")
+    parser = CoreParser("data/test/core_missing_name_section_value")
 
     with assert_warns(UserWarning):
         parser.parse()
 
 
 def test_warns_and_skips_strange_section():
-    parser = CoreParser("data/test/core_file_strange_section")
+    parser = CoreParser("data/test/core_strange_section")
 
     with assert_warns(UserWarning):
         parser.parse()
@@ -73,5 +75,64 @@ def test_ignore_multiple_no_restriction_rows():
     assert_equal(len(parser.constraint_names), 0)
     assert_equal(len(parser.senses), 0)
     assert_equal(parser.objective_name, "OBJ1")
+
+
+def test_parse_bound_types():
+    """
+    Tests if the parser correctly parses the many available bound types. See
+    ``CoreParser._process_bounds`` for an overview of the available types.
+    """
+    parser = CoreParser("data/test/core_all_bound_types.cor")
+    parser.parse()
+
+    #  LO BND       X1        4
+    assert_almost_equal(parser.lower_bounds[0], 4)
+    assert_almost_equal(parser.upper_bounds[0], np.inf)  # has not been changed
+
+    #  UP BND       X2        5
+    assert_almost_equal(parser.lower_bounds[1], 0)  # has not been changed
+    assert_almost_equal(parser.upper_bounds[1], 5)
+
+    #  FX BND       X3        6
+    assert_almost_equal(parser.lower_bounds[2], 6)
+    assert_almost_equal(parser.upper_bounds[2], 6)
+
+    #  FR BND       X4
+    assert_almost_equal(parser.lower_bounds[3], -np.inf)
+    assert_almost_equal(parser.upper_bounds[3], np.inf)
+
+    #  MI BND       X5
+    assert_almost_equal(parser.lower_bounds[4], -np.inf)
+    assert_almost_equal(parser.upper_bounds[4], np.inf)  # has not been changed
+
+    #  PL BND       X6
+    assert_almost_equal(parser.lower_bounds[5], 0)  # has not been changed
+    assert_almost_equal(parser.upper_bounds[5], np.inf)
+
+    #  BV BND       X7
+    assert_almost_equal(parser.lower_bounds[6], 0)
+    assert_almost_equal(parser.upper_bounds[6], 1)
+    assert_equal(parser.types[6], 'B')
+
+    #  LI BND       X8        7
+    assert_almost_equal(parser.lower_bounds[7], 7)
+    assert_almost_equal(parser.upper_bounds[7], np.inf)  # has not been changed
+    assert_equal(parser.types[7], 'I')
+
+    #  UI BND       X9        8
+    assert_almost_equal(parser.lower_bounds[8], 0)  # has not been changed
+    assert_almost_equal(parser.upper_bounds[8], 8)
+    assert_equal(parser.types[8], 'I')
+
+
+def test_raises_unknown_bound_type():
+    """
+    Tests a ValueError is raised when an unknown bound type is encountered in
+    the BOUNDS section.
+    """
+    parser = CoreParser("data/test/core_unknown_bound_type")
+
+    with assert_raises(ValueError):
+        parser.parse()
 
 # TODO

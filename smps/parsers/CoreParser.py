@@ -225,7 +225,7 @@ class CoreParser(Parser):
         ValueError
             When the bound type is not understood.
         """
-        if len(self._lb) != len(self._ub) != len(self.variable_names):
+        if len(self._lb) != len(self.variable_names) != len(self._ub):
             self._lb = np.zeros(len(self.variable_names))
             self._ub = np.full(len(self.variable_names), np.inf)
 
@@ -281,7 +281,7 @@ class CoreParser(Parser):
             self._types[idx] = 'I'
 
     def _process_ranges(self, data_line: DataLine):
-        if len(self._lb) != len(self._ub) != len(self.variable_names):
+        if len(self._lb) != len(self.variable_names) != len(self._ub):
             self._lb = np.zeros(len(self.variable_names))
             self._ub = np.full(len(self.variable_names), np.inf)
 
