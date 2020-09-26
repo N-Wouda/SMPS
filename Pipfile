@@ -11,4 +11,4 @@ codecov = "*"
 
 [packages]
 numpy = ">=1.15"
-# TODO scipy
+scipy = ">=1.5"

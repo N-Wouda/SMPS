@@ -29,7 +29,7 @@ def test_warns_and_skips_strange_section():
     # There is some data in the STRANGE section, which the parser should have
     # ignored. This makes sure that is indeed the case.
     assert_equal(len(parser.constraint_names), 0)
-    assert_equal(len(parser.constraint_senses), 0)
+    assert_equal(len(parser.senses), 0)
     assert_equal(len(parser.objective_name), 0)
 
 
@@ -56,7 +56,7 @@ def test_constraint_rows_lands():
     senses, names = zip(*values)
 
     assert_equal(parser.constraint_names, names)
-    assert_equal(parser.constraint_senses, senses)
+    assert_equal(parser.senses, senses)
     assert_equal(parser.objective_name, "OBJ")
 
 
@@ -71,7 +71,7 @@ def test_ignore_multiple_no_restriction_rows():
     # There are three 'N' rows - the first is names "OBJ1", and should become
     # the objective. All others should be ignored.
     assert_equal(len(parser.constraint_names), 0)
-    assert_equal(len(parser.constraint_senses), 0)
+    assert_equal(len(parser.senses), 0)
     assert_equal(parser.objective_name, "OBJ1")
 
 # TODO

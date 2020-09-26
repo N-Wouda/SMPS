@@ -1,8 +1,10 @@
 import logging
 import warnings
+from functools import lru_cache
 from typing import List, Tuple
 
 import numpy as np
+from scipy.sparse import coo_matrix
 
 from smps.classes import DataLine
 from .Parser import Parser
@@ -30,25 +32,23 @@ class CoreParser(Parser):
         super().__init__(location)
 
         self._constraint_names = []
-        self._constraint_senses = []
+        self._senses = []
+        self._rhs: np.array = []
         self._constr2idx = {}
-
-        self._objective_name = ""
 
         # This list contains all objective coefficients, as a list of
         # (variable, value)-tuples.
         self._obj_coeffs: List[Tuple[str, float]] = []
+        self._objective_name = ""
 
         # This list will contain all elements of the constrain matrix, as a list
-        # of (constraint, variable, value)-tuples. That's a fairly convenient
-        # way to construct the sparse matrices later.
+        # of (constraint, variable, value)-tuples.
         self._elements: List[Tuple[str, str, float]] = []
         self._variable_names = []
+        self._types: np.array = []
+        self._lb: np.array = []
+        self._ub: np.array = []
         self._var2idx = {}
-
-        self._rhs: np.array = []
-        self._var_lb: np.array = []
-        self._var_ub: np.array = []
 
     @property
     def constraint_names(self) -> List[str]:
@@ -61,14 +61,23 @@ class CoreParser(Parser):
         return self._constraint_names
 
     @property
-    def constraint_senses(self) -> List[str]:
+    def senses(self) -> List[str]:
         """
         Returns the constraint senses, as a list. The first sense belongs to the
         first constraint, the second to the second constraint, and so on. This
         list contains values in {'E', 'L', 'G'}, indicating equality,
         less-than-equal, or greater-than-equal senses, respectively.
         """
-        return self._constraint_senses
+        return self._senses
+
+    @property
+    def rhs(self) -> np.array:
+        """
+        Constraint right-hand sides, as a vector with one entry per constraint.
+        If this was not specified otherwise in the data file, the constraint
+        right-hand side defaults to zero.
+        """
+        return self._rhs
 
     @property
     def objective_name(self) -> str:
@@ -76,6 +85,39 @@ class CoreParser(Parser):
         Objective function name.
         """
         return self._objective_name
+
+    @property
+    @lru_cache(1)
+    def coefficients(self) -> coo_matrix:
+        """
+        Builds and returns a sparse matrix of the coefficient data. This
+        represents the entire tableau, for all stages. Cached after first call.
+        """
+        data = []
+        rows = []
+        cols = []
+
+        for constr, var, val in self._elements:
+            data.append(val)
+            rows.append(self._constr2idx[constr])
+            cols.append(self._var2idx[var])
+
+        shape = (len(self.constraint_names), len(self.variable_names))
+        return coo_matrix((data, (rows, cols)), shape=shape)
+
+    @property
+    @lru_cache(1)
+    def objective_coefficients(self) -> np.array:
+        """
+        Constructs a dense vector of objective coefficients. Cached after first
+        call.
+        """
+        coeffs = np.zeros(len(self.variable_names))
+
+        for var, val in self._obj_coeffs:
+            coeffs[self._var2idx[var]] = val
+
+        return coeffs
 
     @property
     def variable_names(self) -> List[str]:
@@ -86,11 +128,22 @@ class CoreParser(Parser):
         return self._variable_names
 
     @property
-    def rhs(self) -> np.array:
+    def lower_bounds(self) -> np.array:
         """
-        Constraint right-hand sides, as a vector with one entry per constraint.
+        Variable lower bounds, as a vector with one entry per variable. If this
+        was not specified otherwise in the data file, the lower bound defaults
+        to zero.
         """
-        return self._rhs
+        return self._lb
+
+    @property
+    def upper_bounds(self) -> np.array:
+        """
+        Variable upper bounds, as a vector with one entry per variable. If this
+        was not specified otherwise in the data file, the upper bound defaults
+        to +infinity.
+        """
+        return self._ub
 
     def _process_name(self, data_line: DataLine):
         assert data_line.header() == "NAME"
@@ -116,7 +169,7 @@ class CoreParser(Parser):
             return
         else:
             self._constraint_names.append(data_line.name())
-            self._constraint_senses.append(data_line.indicator())
+            self._senses.append(data_line.indicator())
 
             self._constr2idx[data_line.name()] = len(self._constraint_names) - 1
 
@@ -143,16 +196,16 @@ class CoreParser(Parser):
         # TODO
 
     def _process_bounds(self, data_line: DataLine):
-        if len(self._var_lb) != len(self._var_ub) != len(self.variable_names):
-            self._var_lb = np.zeros(len(self.variable_names))
-            self._var_ub = np.full(len(self.variable_names), np.inf)
+        if len(self._lb) != len(self._ub) != len(self.variable_names):
+            self._lb = np.zeros(len(self.variable_names))
+            self._ub = np.full(len(self.variable_names), np.inf)
 
         # TODO
 
     def _process_ranges(self, data_line: DataLine):
-        if len(self._var_lb) != len(self._var_ub) != len(self.variable_names):
-            self._var_lb = np.zeros(len(self.variable_names))
-            self._var_ub = np.full(len(self.variable_names), np.inf)
+        if len(self._lb) != len(self._ub) != len(self.variable_names):
+            self._lb = np.zeros(len(self.variable_names))
+            self._ub = np.full(len(self.variable_names), np.inf)
 
         # TODO
 
