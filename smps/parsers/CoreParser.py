@@ -1,6 +1,6 @@
 import logging
 import warnings
-from typing import List
+from typing import List, Tuple
 
 from smps.classes import DataLine
 from .Parser import Parser
@@ -30,6 +30,8 @@ class CoreParser(Parser):
         self._constraint_names = []
         self._constraint_senses = []
         self._objective_name = ""
+
+        self._elements: List[Tuple[str, str, float]] = []
         # TODO
 
     @property
@@ -71,10 +73,10 @@ class CoreParser(Parser):
     def _process_rows(self, data_line: DataLine):
         assert data_line.indicator() in set("NELG")
 
-        # This is a "no restriction" constraint, which indicates an objective
-        # function. There can be more than one such constraints, but there can
-        # only be one objective. We take the first such row as the objective,
-        # and then ignore any subsequent "no restriction" rows.
+        # This is a "no restriction" row, which indicates an objective function.
+        # There can be more than one such row, but there can only be one
+        # objective. We take the first such row as the objective, and then
+        # ignore any subsequent "no restriction" rows.
         if data_line.indicator() == 'N':
             if self.objective_name == "":
                 logger.debug(f"Setting {data_line.name()} as objective.")
@@ -86,7 +88,17 @@ class CoreParser(Parser):
             self._constraint_senses.append(data_line.indicator())
 
     def _process_columns(self, data_line: DataLine):
-        pass  # TODO
+        var = data_line.name()
+        constr = data_line.first_data_name()
+        value = data_line.first_number()
+
+        self._elements.append((var, constr, value))
+
+        if data_line.has_second_data_entry():
+            constr = data_line.second_data_name()
+            value = data_line.second_number()
+
+            self._elements.append((var, constr, value))
 
     def _process_rhs(self, data_line: DataLine):
         pass  # TODO

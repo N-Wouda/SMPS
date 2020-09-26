@@ -37,7 +37,7 @@ class DataLine:
         """
         If True, this DataLine defines a section header. False otherwise.
         """
-        return self._raw[0] not in {' ', '*'}
+        return self._raw[0] not in set(" *")
 
     def header(self) -> str:
         header, *_ = self._raw.split()

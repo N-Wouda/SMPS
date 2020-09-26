@@ -34,27 +34,17 @@ class Parser(ABC):
 
     def file_exists(self) -> bool:
         """
-        Returns
-        -------
-        bool
-            True if the file location points to a file of the appropriate type
-            for this parser, False if not.
+        Returns True if the file location points to a file of the appropriate
+        type for this parser, False if not.
         """
         return any(self._location.with_suffix(extension).exists()
                    for extension in self.FILE_EXTENSIONS)
 
     def file_location(self) -> Path:
         """
-        Returns
-        -------
-        Path
-            A Python path to the file this parser processes. Assumes existence
-            has been checked before calling this method.
-
-        Raises
-        ------
-        AssertionError
-            When the file does not exist.
+        Returns a Python path to the file this parser processes. Assumes
+         existence has been checked before calling this method (see
+         ``file_exists``).
         """
         assert self.file_exists()
 
