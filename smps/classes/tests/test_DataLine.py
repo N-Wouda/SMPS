@@ -96,7 +96,6 @@ def test_has_no_second_data_entry():
     Tests if the DataLine class correctly determines there is no second data
     entry.
     """
-
     line = "    x_1       c2                 188"
     data_line = DataLine(line)
 
