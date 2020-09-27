@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 class StochParser(Parser):
-    FILE_EXTENSIONS = [".sto", ".STO", ".stoch", ".STOCH"]
-    STEPS = {
+    _FILE_EXTENSIONS = [".sto", ".STO", ".stoch", ".STOCH"]
+    _STEPS = {
         "STOCH": lambda self, data_line: self._process_stoch(data_line),
         "INDEP": lambda self, data_line: self._process_indep(data_line),
         "BLOCKS": lambda self, data_line: self._process_blocks(data_line),

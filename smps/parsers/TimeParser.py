@@ -6,13 +6,13 @@ from typing import List
 from smps.classes import DataLine
 from .Parser import Parser
 
-StageOffset = namedtuple("StageOffset", "var constr period")
+StageOffset = namedtuple("StageOffset", "variable constraint period")
 logger = logging.getLogger(__name__)
 
 
 class TimeParser(Parser):
-    FILE_EXTENSIONS = [".tim", ".TIM", ".time", ".TIME"]
-    STEPS = {
+    _FILE_EXTENSIONS = [".tim", ".TIM", ".time", ".TIME"]
+    _STEPS = {
         "TIME": lambda self, data_line: self._process_time(data_line),
         "PERIODS": lambda self, data_line: self._process_periods(data_line),
     }
@@ -22,7 +22,25 @@ class TimeParser(Parser):
         self._stage_offsets: List[StageOffset] = []
 
     @property
+    def num_stages(self) -> int:
+        """
+        Number of stages in the problem.
+        """
+        return len(self._stage_offsets)
+
+    @property
+    def stage_names(self) -> List[str]:
+        """
+        Returns a list of stage names, that is, the names of each time period.
+        """
+        return [offset.period for offset in self._stage_offsets]
+
+    @property
     def stage_offsets(self) -> List[StageOffset]:
+        """
+        Returns a list of StageOffset objects, which are named tuples with
+        variable, constraint, and period attributes.
+        """
         return self._stage_offsets
 
     def _process_time(self, data_line: DataLine):

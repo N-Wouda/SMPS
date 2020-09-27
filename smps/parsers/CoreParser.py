@@ -13,13 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class CoreParser(Parser):
-    """
-    The core parser essentially parses the MPS part of the SMPS file triplet.
-    We follow http://lpsolve.sourceforge.net/5.5/mps-format.htm, and
-    http://tiny.cc/lsyxsz.
-    """
-    FILE_EXTENSIONS = [".cor", ".COR", ".core", ".CORE"]
-    STEPS = {
+    _FILE_EXTENSIONS = [".cor", ".COR", ".core", ".CORE"]
+    _STEPS = {
         "NAME": lambda self, data_line: self._process_name(data_line),
         "ROWS": lambda self, data_line: self._process_rows(data_line),
         "COLUMNS": lambda self, data_line: self._process_columns(data_line),

@@ -14,31 +14,48 @@ class SMPS:
 
     Arguments
     ---------
-    location : str, Path
-        File-system location of the SMPS triplet of files. Assumes these files
-        have extensions .cor or .core for the CORE file, .tim or .time for the
-        TIME file, and .sto or .stoch for the STOCH file.
+    *locations : Union[str, Path]
+        File-system location(s) of the SMPS triplet of files. If only a single
+        string is passed, it is assumed this identifies all three files (with
+        extensions .cor or .core for the CORE file, .tim or .time for the
+        TIME file, and .sto or .stoch for the STOCH file). If (more than) three
+        locations are passed, it is assumed the first identifies the CORE file,
+        the second the TIME file, and the third the STOCH file. Any remaining
+        arguments are ignored.
 
     Raises
     ------
     FileNotFoundError
         When one of the CORE, TIME, or STOCH files does not exist.
+    ValueError
+        When a number of locations other than 1 or 3 is received.
+
+    References
+    ----------
+    See http://lpsolve.sourceforge.net/5.5/mps-format.htm for a detailed
+    description of the MPS format (CORE file), and http://tiny.cc/lsyxsz for
+    a brief overview of various parts of the other SMPS file.
     """
 
-    def __init__(self, location: Union[str, Path]):
-        # TODO allow specifying different locations for each file (i.e. 3, not
-        #  1 overall).
-        self._location = Path(location)
+    def __init__(self, *locations: Union[str, Path]):
+        if len(locations) == 1:
+            location = Path(locations[0])
 
-        self._core = CoreParser(location)
-        self._time = TimeParser(location)
-        self._stoch = StochParser(location)
+            core_location = location
+            time_location = location
+            stoch_location = location
+        elif len(locations) >= 3:
+            core_location = Path(locations[0])
+            time_location = Path(locations[1])
+            stoch_location = Path(locations[2])
+        else:
+            msg = f"Received {len(locations)} locations, expected 1 or 3."
+            logger.error(msg)
+            raise ValueError(msg)
 
-        parsers = [self._core, self._time, self._stoch]
-
-        if not all(parser.file_exists() for parser in parsers):
-            raise FileNotFoundError("One of the CORE, TIME, or STOCH files does"
-                                    " not exist.")
+        self._core = CoreParser(core_location)
+        self._time = TimeParser(time_location)
+        self._stoch = StochParser(stoch_location)
 
         self._core.parse()
         self._time.parse()
@@ -50,16 +67,15 @@ class SMPS:
             warnings.warn(msg)
 
     @property
-    def location(self) -> Path:
-        """
-        Returns the file-system location of the SMPS triplet of files, without
-        any extensions.
+    def core_location(self) -> Path:
+        return self._core.file_location()
 
-        Returns
-        -------
-        Path
-            The location, as a Python path.
-        """
-        return self._location
+    @property
+    def time_location(self) -> Path:
+        return self._time.file_location()
 
-    # TODO
+    @property
+    def stoch_location(self) -> Path:
+        return self._stoch.file_location()
+
+# TODO

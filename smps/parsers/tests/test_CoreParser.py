@@ -1,18 +1,13 @@
 import numpy as np
-from numpy.testing import (assert_, assert_almost_equal, assert_equal,
+from numpy.testing import (assert_almost_equal, assert_equal,
                            assert_raises, assert_warns)
 
 from smps.parsers import CoreParser
 
 
-def test_file_exists():
-    parser = CoreParser("data/sslp/sslp_5_25_50")
-    assert_(parser.file_exists())
-
-
-def test_file_does_not_exist():
-    parser = CoreParser("data/asdf3244325afds/assdew")
-    assert_(not parser.file_exists())
+def test_raises_file_does_not_exist():
+    with assert_raises(FileNotFoundError):
+        CoreParser("data/asdf3244325afds/assdew")
 
 
 def test_warns_missing_name_value():
@@ -167,7 +162,8 @@ def test_rhs_lands():
     parser.parse()
 
     # Only the first two (first-stage) constraints have non-zero RHS specified
-    # here - the others follow from the STO file.
+    # here - the others follow from the STOCH file and are implicit zero when
+    # parsing the CORE file.
     assert_almost_equal(parser.rhs, [14, 120, 0, 0, 0, 0, 0, 0, 0])
 
 
@@ -190,41 +186,47 @@ def test_parse_bound_types():
     parser = CoreParser("data/test/core_all_bound_types.cor")
     parser.parse()
 
-    #  LO BND       X1        4
+    #  LO BND       X1        4  [lower bound 4]
     assert_almost_equal(parser.lower_bounds[0], 4)
     assert_almost_equal(parser.upper_bounds[0], np.inf)  # has not been changed
+    assert_equal(parser.types[0], 'C')  # has not been changed
 
-    #  UP BND       X2        5
+    #  UP BND       X2        5  [upper bound 5]
     assert_almost_equal(parser.lower_bounds[1], 0)  # has not been changed
     assert_almost_equal(parser.upper_bounds[1], 5)
+    assert_equal(parser.types[1], 'C')  # has not been changed
 
-    #  FX BND       X3        6
+    #  FX BND       X3        6  [fixed variable at 6]
     assert_almost_equal(parser.lower_bounds[2], 6)
     assert_almost_equal(parser.upper_bounds[2], 6)
+    assert_equal(parser.types[2], 'C')  # has not been changed
 
-    #  FR BND       X4
+    #  FR BND       X4  [free variable]
     assert_almost_equal(parser.lower_bounds[3], -np.inf)
     assert_almost_equal(parser.upper_bounds[3], np.inf)
+    assert_equal(parser.types[3], 'C')  # has not been changed
 
-    #  MI BND       X5
+    #  MI BND       X5  [lower bound -inf]
     assert_almost_equal(parser.lower_bounds[4], -np.inf)
     assert_almost_equal(parser.upper_bounds[4], np.inf)  # has not been changed
+    assert_equal(parser.types[4], 'C')  # has not been changed
 
-    #  PL BND       X6
+    #  PL BND       X6  [upper bound +inf]
     assert_almost_equal(parser.lower_bounds[5], 0)  # has not been changed
     assert_almost_equal(parser.upper_bounds[5], np.inf)
+    assert_equal(parser.types[5], 'C')  # has not been changed
 
-    #  BV BND       X7
+    #  BV BND       X7  [binary variable]
     assert_almost_equal(parser.lower_bounds[6], 0)
     assert_almost_equal(parser.upper_bounds[6], 1)
     assert_equal(parser.types[6], 'B')
 
-    #  LI BND       X8        7
+    #  LI BND       X8        7  [integer variable, lower bound 7]
     assert_almost_equal(parser.lower_bounds[7], 7)
     assert_almost_equal(parser.upper_bounds[7], np.inf)  # has not been changed
     assert_equal(parser.types[7], 'I')
 
-    #  UI BND       X9        8
+    #  UI BND       X9        8  [integer variable, upper bound 8]
     assert_almost_equal(parser.lower_bounds[8], 0)  # has not been changed
     assert_almost_equal(parser.upper_bounds[8], 8)
     assert_equal(parser.types[8], 'I')

@@ -1,0 +1,4 @@
+* Tests if passing three arguments to SMPS works.
+STOCH         Test
+SCENARIOS
+ENDATA
