@@ -44,11 +44,9 @@ class TimeParser(Parser):
         return self._stage_offsets
 
     def _process_time(self, data_line: DataLine):
-        assert data_line.header() == "TIME"
+        self._name = data_line.second_header_word()
 
-        if len(data_line) > 15:
-            self._name = data_line.first_data_name()
-        else:
+        if not data_line.second_header_word():
             warnings.warn("Time file has no value for the TIME field.")
             logger.warning("Time file has no value for the TIME field.")
 

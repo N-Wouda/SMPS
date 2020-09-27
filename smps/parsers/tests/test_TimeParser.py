@@ -56,9 +56,7 @@ def test_sslp_5_25_50():
     parser = TimeParser("data/sslp/sslp_5_25_50")
     parser.parse()
 
-    # Name is actually "sslp_5_1_25", but the first data name field can only
-    # contain eight characters, so the last "_25" is not parsed.
-    assert_equal(parser.name, "sslp_5_1")
+    assert_equal(parser.name, "sslp_5_1_25")
     assert_equal(parser.num_stages, 2)
 
     # x_1       c1                       STAGE-1

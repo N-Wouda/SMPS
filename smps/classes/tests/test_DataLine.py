@@ -86,10 +86,11 @@ def test_header():
     Tests if the DataLine class correctly parses section headers.
     """
     header_line = DataLine("ROWS")  # empty section header.
-    assert_equal(header_line.header(), "ROWS")
+    assert_equal(header_line.first_header_word(), "ROWS")
 
     header_line = DataLine("INDEP         DISCRETE")  # parameterised header.
-    assert_equal(header_line.header(), "INDEP")
+    assert_equal(header_line.first_header_word(), "INDEP")
+    assert_equal(header_line.second_header_word(), "DISCRETE")
 
 
 def test_first_data_entry():
@@ -216,5 +217,36 @@ def test_second_number_columns(line, expected):
 
     data_line = DataLine(padding + line)
     assert_almost_equal(data_line.second_number(), expected)
+
+
+@pytest.mark.parametrize("line,expected", [("NAME", "NAME"),
+                                           ("NAME  \t\r\n", "NAME"),
+                                           ("a" * 15, "a" * 14),
+                                           ("a  bc ", "a  bc")])
+def test_first_header_word(line, expected):
+    """
+    The first word field on a header line is the 1-14 column range (inclusive).
+    """
+    header_line = DataLine(line)
+
+    assert_(header_line.is_header())
+    assert_equal(header_line.first_header_word(), expected)
+
+
+@pytest.mark.parametrize("line,expected", [("Test", "Test"),
+                                           ("Test  \t\r\n", "Test"),
+                                           ("a" * 59, "a" * 58),
+                                           ("a  bc ", "a  bc"),
+                                           ("    ab    abc  ", "ab    abc")])
+def test_second_header_word(line, expected):
+    """
+    The second word field on a header line is the 15-72 column range
+    (inclusive).
+    """
+    padding = "NAME" + " " * 10  # second data word starts at column 15.
+    header_line = DataLine(padding + line)
+
+    assert_(header_line.is_header())
+    assert_equal(header_line.second_header_word(), expected)
 
 # TODO

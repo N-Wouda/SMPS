@@ -157,11 +157,9 @@ class CoreParser(Parser):
         return self._ub
 
     def _process_name(self, data_line: DataLine):
-        assert data_line.header() == "NAME"
+        self._name = data_line.second_header_word()
 
-        if len(data_line) > 15:
-            self._name = data_line.first_data_name()
-        else:
+        if not data_line.second_header_word():
             warnings.warn("Core file has no value for the NAME field.")
             logger.warning("Core file has no value for the NAME field.")
 

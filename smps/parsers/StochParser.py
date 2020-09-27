@@ -21,11 +21,9 @@ class StochParser(Parser):
         # TODO
 
     def _process_stoch(self, data_line: DataLine):
-        assert data_line.header() == "STOCH"
+        self._name = data_line.second_header_word()
 
-        if len(data_line) > 15:
-            self._name = data_line.first_data_name()
-        else:
+        if not data_line.second_header_word():
             warnings.warn("Stoch file has no value for the STOCH field.")
             logger.warning("Stoch file has no value for the STOCH field.")
 

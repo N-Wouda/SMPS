@@ -124,7 +124,7 @@ class Parser(ABC):
             otherwise.
         """
         assert data_line.is_header()
-        header = data_line.header()
+        header = data_line.first_header_word()
 
         if header == self._state:
             # This is very likely the first state, which has a name attribute

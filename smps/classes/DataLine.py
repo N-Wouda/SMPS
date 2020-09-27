@@ -15,10 +15,21 @@ class DataLine:
         - Columns 40-47: second data name field,
         - Columns 50-61: second numeric field.
 
+    When a data line is a header, the following is available:
+        - Columns 1-14: first word field,
+        - Columns 15-72: second word field.
+
     Arguments
     ---------
     data_line : str
         Raw data line string, to be parsed.
+
+    References
+    ----------
+    - Birge, J.R., Dempster, M.A.H., Gassmann, H.I., Gunn, E., King, A.J.,
+      and Wallace, S.W. 1987. A Standard Input Format for Multiperiod Stochastic
+      Linear Programs. `WP-87-118`.
+      http://pure.iiasa.ac.at/id/eprint/2934/1/WP-87-118.pdf.
     """
 
     def __init__(self, data_line: str):
@@ -39,9 +50,13 @@ class DataLine:
         """
         return self._raw[0] not in set(" *")
 
-    def header(self) -> str:
-        header, *_ = self._raw.split()
-        return header.strip().upper()
+    def first_header_word(self):
+        assert self.is_header()
+        return self._raw[0:14].strip()
+
+    def second_header_word(self):
+        assert self.is_header()
+        return self._raw[14:72].strip()
 
     def name(self) -> str:
         return self._raw[4:12].strip()
