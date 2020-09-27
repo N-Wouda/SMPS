@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import logging
-from typing import List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 
 class Scenario:
+    # Mapping of all scenarios by name. This is used to look-up any parent
+    # scenarios.
+    _SCENARIOS: Dict[str, Scenario] = {}
 
     def __init__(self,
                  name: str,
@@ -28,14 +33,22 @@ class Scenario:
         # This stores all modification in this scenario, relative to the parent
         # this scenario branches from.
         self._modifications: List[Tuple[str, str, float]] = []
+        Scenario._SCENARIOS[self._name] = self
 
     @property
     def name(self) -> str:
         return self._name
 
     @property
-    def parent(self) -> str:
-        return self._parent
+    def parent(self) -> Optional[Scenario]:
+        """
+        Returns the parent scenario, or None if this scenario branches from
+        root.
+        """
+        if self.branches_from_root():
+            return None
+
+        return Scenario._SCENARIOS[self._parent]
 
     @property
     def branch_period(self) -> str:
@@ -47,6 +60,24 @@ class Scenario:
 
     def add_modification(self, constr: str, var: str, value: float):
         """
-        Adds a modification to the scenario.
+        Adds a modification to the scenario. This is a modification relative
+        to the parent scenario.
         """
         self._modifications.append((constr, var, value))
+
+    def branches_from_root(self) -> bool:
+        return "ROOT" in self._parent.upper()
+
+    @classmethod
+    def clear(cls):
+        """
+        Empties the stored scenario mapping (cache).
+        """
+        cls._SCENARIOS.clear()
+
+    @classmethod
+    def num_scenarios(cls) -> int:
+        """
+        Returns the number of scenarios stored in cache.
+        """
+        return len(cls._SCENARIOS)

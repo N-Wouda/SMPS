@@ -4,7 +4,7 @@ import logging
 import warnings
 from abc import ABC
 from pathlib import Path
-from typing import Callable, Dict, Generator, List, Union
+from typing import Callable, Dict, Generator, List, Optional, Union
 
 from smps.classes import DataLine
 
@@ -43,7 +43,7 @@ class Parser(ABC):
         self._state = next(iter(self._STEPS.keys()))
         self._location = Path(location)
 
-        if not self.file_location():
+        if self.file_location() is None:
             msg = f"{typ}: {location} does not define an appropriate file."
             logger.error(msg)
             raise FileNotFoundError(msg)
@@ -54,10 +54,11 @@ class Parser(ABC):
     def name(self) -> str:
         return self._name
 
-    def file_location(self) -> Path:
+    def file_location(self) -> Optional[Path]:
         """
         Returns a Python path to the file this parser processes. Assumes
-        existence has been checked before calling this method.
+        existence has been checked before calling this method. Returns None
+        if the file could not be found.
         """
         if self._location.exists():
             logger.debug(f"Found existing file {self._location}.")
@@ -69,6 +70,8 @@ class Parser(ABC):
             if file.exists():
                 logger.debug(f"Found existing file {file}.")
                 return file
+
+        return None
 
     def parse(self):
         """

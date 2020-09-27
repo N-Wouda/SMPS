@@ -28,7 +28,7 @@ class SMPS:
     FileNotFoundError
         When one of the CORE, TIME, or STOCH files does not exist.
     ValueError
-        When a number of locations other than 1 or 3 is received.
+        When a number of locations other than 1 or 3(+) is received.
 
     References
     ----------
@@ -38,6 +38,8 @@ class SMPS:
     """
 
     def __init__(self, *locations: Union[str, Path]):
+        logger.debug(f"Creating an SMPS instance with arguments {locations}.")
+
         if len(locations) == 1:
             location = Path(locations[0])
 
@@ -54,11 +56,12 @@ class SMPS:
             raise ValueError(msg)
 
         self._core = CoreParser(core_location)
-        self._time = TimeParser(time_location)
-        self._stoch = StochParser(stoch_location)
-
         self._core.parse()
+
+        self._time = TimeParser(time_location)
         self._time.parse()
+
+        self._stoch = StochParser(stoch_location)
         self._stoch.parse()
 
         if len({self._stoch.name, self._core.name, self._time.name}) != 1:
