@@ -66,6 +66,10 @@ class Scenario:
         self._modifications.append((constr, var, value))
 
     def branches_from_root(self) -> bool:
+        """
+        True if this scenario branches from ROOT, that is, directly from the
+        core file.
+        """
         return "ROOT" in self._parent.upper()
 
     @classmethod
