@@ -3,6 +3,26 @@ from numpy.testing import (assert_, assert_almost_equal, assert_equal)
 
 from smps.classes import DataLine
 
+# These are used to parametrise testing the text fields (i.e., name, first data
+# name, and second data name).
+_TEXT_TESTS = [("Test1234", "Test1234"),
+               ("Test12345", "Test1234"),  # cut-off after 8 characters
+               ("Test", "Test"),
+               ("Te st", "Te st"),
+               (" " * 10 + "DataName", ""),
+               ("", "")]
+
+# These are used to parametrise testing the numeric fields (i.e., the first
+# and second numeric field).
+_NUMERIC_TESTS = [("123.456", 123.456),
+                  ("-871.9999", -871.9999),
+                  ("0.00", 0),
+                  ("1" + "0" * 11, 1e11),
+                  ("1" + "0" * 12, 1e11),  # cut-off after 12 characters
+                  ("100", 100),
+                  (" " * 12, float("nan")),  # curious numpy NaN compare works.
+                  ("", float("nan"))]
+
 
 @pytest.mark.parametrize("length,string", [(1, "a"), (2, "ab"), (16, "ab" * 8)])
 def test_len(length, string):
@@ -143,63 +163,58 @@ def test_indicator_columns(line, expected):
     assert_equal(data_line.indicator(), expected)
 
 
-@pytest.mark.parametrize("line,expected", [("Test1234", "Test1234"),
-                                           ("Test12345", "Test1234"),
-                                           ("Test", "Test"),
-                                           ("Te st", "Te st"),
-                                           (" " * 10 + "DataName", ""),
-                                           ("", "")])
+@pytest.mark.parametrize("line,expected", _TEXT_TESTS)
 def test_name_columns(line, expected):
     """
     The name field is the 5-12 column range (inclusive).
     """
-    padding = " " * 4  # starts at column 5, so 4 spaces
+    padding = " " * 4  # starts at column 5, so 4 spaces.
 
     data_line = DataLine(padding + line)
     assert_equal(data_line.name(), expected)
 
 
-@pytest.mark.parametrize("line,expected", [("", "")])  # TODO
+@pytest.mark.parametrize("line,expected", _TEXT_TESTS)
 def test_first_data_name_columns(line, expected):
     """
     The first data name field is the 15-12 column range (inclusive).
     """
-    padding = " " * 14  # starts at column 15, so 14 spaces
+    padding = " " * 14  # starts at column 15, so 14 spaces.
 
     data_line = DataLine(padding + line)
     assert_equal(data_line.first_data_name(), expected)
 
 
-@pytest.mark.parametrize("line,expected", [("", float("nan"))])  # TODO
+@pytest.mark.parametrize("line,expected", _NUMERIC_TESTS)
 def test_first_number_columns(line, expected):
     """
     The first numeric field is the 25-36 column range (inclusive).
     """
-    padding = " " * 24  # starts at column 25, so 24 spaces
+    padding = " " * 24  # starts at column 25, so 24 spaces.
 
     data_line = DataLine(padding + line)
-    assert_equal(data_line.first_number(), expected)
+    assert_almost_equal(data_line.first_number(), expected)
 
 
-@pytest.mark.parametrize("line,expected", [("", "")])  # TODO
+@pytest.mark.parametrize("line,expected", _TEXT_TESTS)
 def test_second_data_name_columns(line, expected):
     """
     The second data name field is the 40-47 column range (inclusive).
     """
-    padding = " " * 39  # starts at column 40, so 39 spaces
+    padding = " " * 39  # starts at column 40, so 39 spaces.
 
     data_line = DataLine(padding + line)
     assert_equal(data_line.second_data_name(), expected)
 
 
-@pytest.mark.parametrize("line,expected", [("", float("nan"))])  # TODO
+@pytest.mark.parametrize("line,expected", _NUMERIC_TESTS)
 def test_second_number_columns(line, expected):
     """
     The second numeric field is the 50-61 column range (inclusive).
     """
-    padding = " " * 49  # starts at column 50, so 49 spaces
+    padding = " " * 49  # starts at column 50, so 49 spaces.
 
     data_line = DataLine(padding + line)
-    assert_equal(data_line.second_number(), expected)
+    assert_almost_equal(data_line.second_number(), expected)
 
 # TODO
