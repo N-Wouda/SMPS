@@ -50,7 +50,8 @@ class DataLine:
         return self._raw[14:22].strip()
 
     def first_number(self) -> float:
-        return float(self._raw[24:36].strip())
+        string = self._raw[24:36].strip()
+        return float(string) if len(string) != 0 else float("nan")
 
     def has_second_data_entry(self) -> bool:
         # TODO is this sufficient to ensure both the name and number field
@@ -61,7 +62,8 @@ class DataLine:
         return self._raw[39:47].strip()
 
     def second_number(self) -> float:
-        return float(self._raw[49:61].strip())
+        string = self._raw[49:61].strip()
+        return float(string) if len(string) != 0 else float("nan")
 
     def raw(self) -> str:
         return self._raw

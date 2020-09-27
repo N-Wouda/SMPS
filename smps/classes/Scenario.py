@@ -68,7 +68,7 @@ class Scenario:
     def branches_from_root(self) -> bool:
         """
         True if this scenario branches from ROOT, that is, directly from the
-        core file.
+        core file. False otherwise.
         """
         return "ROOT" in self._parent.upper()
 

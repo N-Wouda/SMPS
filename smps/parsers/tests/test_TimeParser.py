@@ -51,7 +51,7 @@ def test_lands():
 
 def test_sslp_5_25_50():
     """
-    Tests if a small SSLP isntance's time file is parsed correctly.
+    Tests if a small SSLP instance's time file is parsed correctly.
     """
     parser = TimeParser("data/sslp/sslp_5_25_50")
     parser.parse()

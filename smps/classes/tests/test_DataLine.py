@@ -1,5 +1,5 @@
 import pytest
-from numpy.testing import assert_, assert_almost_equal, assert_equal
+from numpy.testing import (assert_, assert_almost_equal, assert_equal)
 
 from smps.classes import DataLine
 
@@ -39,32 +39,26 @@ def test_indicator_and_name():
     assert_equal(data_line.name(), "OBJ")
 
 
-def test_is_comment():
+@pytest.mark.parametrize("line,expected", [("* bogus stuff", True),
+                                           ("    * BOGUS", True),
+                                           (" N  OBJ", False)])
+def test_is_comment(line, expected):
     """
     Tests if the DataLine class correctly detects comment lines.
     """
-    data_line = DataLine("* bogus stuff")
-    assert_(data_line.is_comment())
-
-    data_line = DataLine("    * BOGUS")
-    assert_(data_line.is_comment())
-
-    data_line = DataLine(" N  OBJ")
-    assert_(not data_line.is_comment())
+    data_line = DataLine(line)
+    assert_equal(data_line.is_comment(), expected)
 
 
-def test_is_header():
+@pytest.mark.parametrize("line,expected", [("ROWS", True),
+                                           (" N  OBJ", False),
+                                           ("* some text", False)])
+def test_is_header(line, expected):
     """
     Tests if the DataLine class correctly detects section headers.
     """
-    header_line = DataLine("ROWS")
-    assert_(header_line.is_header())
-
-    data_line = DataLine(" N  OBJ")  # from the LandS.cor file.
-    assert_(not data_line.is_header())
-
-    comment_line = DataLine("* some text")
-    assert_(not comment_line.is_header())
+    data_line = DataLine(line)
+    assert_equal(data_line.is_header(), expected)
 
 
 def test_header():
@@ -123,15 +117,89 @@ def test_second_data_entry():
     assert_almost_equal(data_line.second_number(), -1)
 
 
-def test_raw():
+@pytest.mark.parametrize("line,expected", [("STOCH", "STOCH"),
+                                           ("ROWS   \t\r\n", "ROWS"),
+                                           (" N  OBJ", " N  OBJ")])
+def test_raw(line, expected):
     """
     Tests if the raw method returns the original string, cleaned for
     line-breaks and the like on the right.
     """
-    data_line = DataLine(" N  OBJ")  # from the LandS.cor file.
-    assert_equal(data_line.raw(), " N  OBJ")
+    data_line = DataLine(line)
+    assert_equal(data_line.raw(), expected)
 
-    data_line = DataLine(" N  OBJ    \t\r\n")
-    assert_equal(data_line.raw(), " N  OBJ")
+
+@pytest.mark.parametrize("line,expected", [(" XX ", "XX"),
+                                           (" Y", "Y"),
+                                           ("  Y", "Y"),
+                                           (" Y  Name", "Y"),
+                                           ("    Name", ""),
+                                           ("", "")])
+def test_indicator_columns(line, expected):
+    """
+    The indicator field is the 2-3 column range (inclusive).
+    """
+    data_line = DataLine(line)
+    assert_equal(data_line.indicator(), expected)
+
+
+@pytest.mark.parametrize("line,expected", [("Test1234", "Test1234"),
+                                           ("Test12345", "Test1234"),
+                                           ("Test", "Test"),
+                                           ("Te st", "Te st"),
+                                           (" " * 10 + "DataName", ""),
+                                           ("", "")])
+def test_name_columns(line, expected):
+    """
+    The name field is the 5-12 column range (inclusive).
+    """
+    padding = " " * 4  # starts at column 5, so 4 spaces
+
+    data_line = DataLine(padding + line)
+    assert_equal(data_line.name(), expected)
+
+
+@pytest.mark.parametrize("line,expected", [("", "")])  # TODO
+def test_first_data_name_columns(line, expected):
+    """
+    The first data name field is the 15-12 column range (inclusive).
+    """
+    padding = " " * 14  # starts at column 15, so 14 spaces
+
+    data_line = DataLine(padding + line)
+    assert_equal(data_line.first_data_name(), expected)
+
+
+@pytest.mark.parametrize("line,expected", [("", float("nan"))])  # TODO
+def test_first_number_columns(line, expected):
+    """
+    The first numeric field is the 25-36 column range (inclusive).
+    """
+    padding = " " * 24  # starts at column 25, so 24 spaces
+
+    data_line = DataLine(padding + line)
+    assert_equal(data_line.first_number(), expected)
+
+
+@pytest.mark.parametrize("line,expected", [("", "")])  # TODO
+def test_second_data_name_columns(line, expected):
+    """
+    The second data name field is the 40-47 column range (inclusive).
+    """
+    padding = " " * 39  # starts at column 40, so 39 spaces
+
+    data_line = DataLine(padding + line)
+    assert_equal(data_line.second_data_name(), expected)
+
+
+@pytest.mark.parametrize("line,expected", [("", float("nan"))])  # TODO
+def test_second_number_columns(line, expected):
+    """
+    The second numeric field is the 50-61 column range (inclusive).
+    """
+    padding = " " * 49  # starts at column 50, so 49 spaces
+
+    data_line = DataLine(padding + line)
+    assert_equal(data_line.second_number(), expected)
 
 # TODO
