@@ -1,0 +1,2 @@
+class Indep:
+    pass
