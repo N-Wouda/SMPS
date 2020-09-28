@@ -45,7 +45,8 @@ def read_smps(*locations: Union[str, Path]) -> SmpsResult:
       http://pure.iiasa.ac.at/id/eprint/2934/1/WP-87-118.pdf.
     - See http://lpsolve.sourceforge.net/5.5/mps-format.htm for a detailed
       description of the MPS format (CORE file), and http://tiny.cc/lsyxsz for
-      a brief overview of various parts of the other SMPS file.
+      a brief overview of various parts of the other SMPS file. Furthermore,
+      we use Gassmann's extensive notes here: http://tiny.cc/b87ysz.
     """
     logger.debug(f"Creating an SMPS instance with arguments {locations}.")
 
