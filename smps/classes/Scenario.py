@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import logging
 from typing import Dict, List, Optional, Tuple
 
@@ -9,7 +7,7 @@ logger = logging.getLogger(__name__)
 class Scenario:
     # Mapping of all scenarios by name. This is used to look-up any parent
     # scenarios.
-    _SCENARIOS: Dict[str, Scenario] = {}
+    _SCENARIOS: Dict[str, "Scenario"] = {}
 
     def __init__(self,
                  name: str,
@@ -40,7 +38,7 @@ class Scenario:
         return self._name
 
     @property
-    def parent(self) -> Optional[Scenario]:
+    def parent(self) -> Optional["Scenario"]:
         """
         Returns the parent scenario, or None if this scenario branches from
         root.

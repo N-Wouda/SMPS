@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import logging
 import warnings
 from abc import ABC
@@ -33,13 +31,14 @@ class Parser(ABC):
 
     # Parsing functions for each header section. Since we cannot forward declare
     # these nicely, this dict is a bit ugly in the implementing classes.
-    _STEPS: Dict[str, Callable[[Parser, DataLine], None]]
+    _STEPS: Dict[str, Callable[["Parser", DataLine], None]]
 
     def __init__(self, location: Union[str, Path]):
         typ = type(self).__name__
         logger.debug(f"Creating {typ} instance with '{location}'.")
 
-        # From Py3.7+ we can rely on insertion order as default behaviour.
+        # Insertion order is a CPython implementation detail in Py3.6, but from
+        # Py3.7+ we can rely on insertion order as default behaviour.
         self._state = next(iter(self._STEPS.keys()))
         self._location = Path(location)
 
