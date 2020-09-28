@@ -1,7 +1,9 @@
 import logging
+from collections import namedtuple
 from functools import lru_cache
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
+Modification = namedtuple("Modification", "constraint variable value")
 logger = logging.getLogger(__name__)
 
 
@@ -31,7 +33,7 @@ class Scenario:
 
         # This stores all modification in this scenario, relative to the parent
         # this scenario branches from.
-        self._modifications: List[Tuple[str, str, float]] = []
+        self._modifications: List[Modification] = []
         Scenario._scenarios[self._name] = self
 
     @property
@@ -54,10 +56,11 @@ class Scenario:
         return self._branch_period
 
     @property
-    def modifications(self) -> List[Tuple[str, str, float]]:
+    def modifications(self) -> List[Modification]:
         """
         Returns all modification local to this scenario (so different from
-        parent).
+        parent). These are lists of named tuples, each with a constraint,
+        variable and value attribute.
         """
         return self._modifications
 
@@ -70,7 +73,7 @@ class Scenario:
         Adds a modification to the scenario. This is a modification relative
         to the parent scenario.
         """
-        self._modifications.append((constr, var, value))
+        self._modifications.append(Modification(constr, var, value))
 
     def branches_from_root(self) -> bool:
         """
@@ -80,7 +83,7 @@ class Scenario:
         return "ROOT" in self._parent.upper()
 
     @lru_cache(1)
-    def modifications_from_root(self) -> List[Tuple[str, str, float]]:
+    def modifications_from_root(self) -> List[Modification]:
         """
         Returns all modifications relative to the root, that is, different from
         the CORE file (this includes everything from the parent, its parent, and
@@ -98,7 +101,7 @@ class Scenario:
 
         par.update(own)
 
-        return [(constr, var, value) for (constr, var), value in par.items()]
+        return [Modification(*key, value) for key, value in par.items()]
 
     @classmethod
     def clear(cls):
@@ -117,3 +120,11 @@ class Scenario:
     @classmethod
     def scenarios(cls) -> List["Scenario"]:
         return [scen for scen in cls._scenarios.values()]
+
+    def __str__(self) -> str:
+        return (f"name={self._name},"
+                f" parent={self._parent},"
+                f" period={self._branch_period}")
+
+    def __repr__(self) -> str:
+        return f"Scenario({self})"

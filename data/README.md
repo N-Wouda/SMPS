@@ -5,6 +5,7 @@ implementation.
 
 We include the following problems:
 - `electric`, a two-stage, fully continuous electricity generation problem.
+- `sizes`, a two-stage, mixed-integer production planning problem.
 - `sslp`, a two-stage, fully binary stochastic server location problem.
 
 TODO multi-stage problems

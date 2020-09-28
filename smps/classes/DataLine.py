@@ -42,13 +42,13 @@ class DataLine:
         return self._raw[1:3].strip()
 
     def is_comment(self) -> bool:
-        return self._raw.lstrip().startswith("*")
+        return len(self._raw) == 0 or self._raw.lstrip().startswith("*")
 
     def is_header(self) -> bool:
         """
         If True, this DataLine defines a section header. False otherwise.
         """
-        return self._raw[0] not in " *"
+        return len(self._raw) >= 1 and self._raw[0] not in " *"
 
     def first_header_word(self):
         assert self.is_header()

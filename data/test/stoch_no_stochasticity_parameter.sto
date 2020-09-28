@@ -1,0 +1,6 @@
+* This stoch file defined an INDEP section, but does not explain what type of
+* stochasticity this has (DISCRETE, NORMAL, UNIFORM, etc.). The parser assumes
+* DISCRETE in this case, but should issue a warning.
+STOCH         Test
+INDEP
+ENDATA

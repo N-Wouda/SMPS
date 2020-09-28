@@ -61,7 +61,8 @@ def test_indicator_and_name():
 
 @pytest.mark.parametrize("line,expected", [("* bogus stuff", True),
                                            ("    * BOGUS", True),
-                                           (" N  OBJ", False)])
+                                           (" N  OBJ", False),
+                                           ("", True)])
 def test_is_comment(line, expected):
     """
     Tests if the DataLine class correctly detects comment lines.
@@ -72,7 +73,8 @@ def test_is_comment(line, expected):
 
 @pytest.mark.parametrize("line,expected", [("ROWS", True),
                                            (" N  OBJ", False),
-                                           ("* some text", False)])
+                                           ("* some text", False),
+                                           ("", False)])
 def test_is_header(line, expected):
     """
     Tests if the DataLine class correctly detects section headers.

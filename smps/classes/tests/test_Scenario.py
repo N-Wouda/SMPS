@@ -12,7 +12,19 @@ def clear_scenarios():
     Clears the global, static scenarios mapping between test runs. This ensures
     each test executes independently.
     """
-    Scenario.clear()
+    Scenario.clear()  # before test
+    yield
+    Scenario.clear()  # after test
+
+
+def test_str():
+    scen = Scenario("test", "root", "stage-1", 0.1)
+    assert_equal(str(scen), "name=test, parent=root, period=stage-1")
+
+
+def test_repr():
+    scen = Scenario("test", "root", "stage-1", 0.1)
+    assert_equal(repr(scen), "Scenario(name=test, parent=root, period=stage-1)")
 
 
 @pytest.mark.parametrize("root,outcome", [("'ROOT'", True),
