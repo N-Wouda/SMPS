@@ -9,7 +9,7 @@ from smps.parsers import CoreParser, StochParser, TimeParser
 logger = logging.getLogger(__name__)
 
 
-def smps(*locations: Union[str, Path]) -> SmpsResult:
+def read_smps(*locations: Union[str, Path]) -> SmpsResult:
     """
     Parses a triplet of SMPS files.
 
