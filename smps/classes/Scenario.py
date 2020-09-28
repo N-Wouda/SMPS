@@ -53,6 +53,14 @@ class Scenario:
         return self._branch_period
 
     @property
+    def modifications(self) -> List[Tuple[str, str, float]]:
+        """
+        Returns all modification local to this scenario (so different from
+        parent).
+        """
+        return self._modifications
+
+    @property
     def probability(self) -> float:
         return self._probability
 
@@ -69,6 +77,26 @@ class Scenario:
         core file. False otherwise.
         """
         return "ROOT" in self._parent.upper()
+
+    def modifications_from_root(self) -> List[Tuple[str, str, float]]:
+        """
+        Returns all modifications relative to the root, that is, different from
+        the CORE file (this includes everything from the parent, its parent, and
+        so on until the root).
+        """
+        modifications = self.modifications
+
+        if self.branches_from_root():  # our modifications are all there is.
+            return modifications
+
+        from_parent = self.parent.modifications_from_root()
+
+        par = {(constr, var): value for constr, var, value in from_parent}
+        own = {(constr, var): value for constr, var, value in modifications}
+
+        par.update(own)
+
+        return [(constr, var, value) for (constr, var), value in par.items()]
 
     @classmethod
     def clear(cls):

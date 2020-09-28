@@ -97,4 +97,21 @@ def test_clear(num_scenarios):
 
     assert_equal(Scenario.num_scenarios(), 0)
 
+
+@pytest.mark.parametrize("num_modifications", [5, 25, 50])
+def test_modifications(num_modifications):
+    scen = Scenario("test", "", "", 0.5)
+
+    modifications = []
+
+    for idx in range(num_modifications):
+        constr = f"Constraint {idx}"
+        var = f"Variable {idx}"
+        value = idx
+
+        modifications.append((constr, var, value))
+        scen.add_modification(constr, var, value)
+
+    assert_equal(scen.modifications, modifications)
+
 # TODO
