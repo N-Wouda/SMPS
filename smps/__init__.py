@@ -1,1 +1,1 @@
-from .SMPS import SMPS
+from .smps import smps

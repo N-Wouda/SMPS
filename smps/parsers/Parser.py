@@ -26,12 +26,11 @@ class Parser(ABC):
         When the file pointed to by ``location`` does not exist, or no file
         exists there with appropriate file extension.
     """
-    # Accepted file extensions.
-    _FILE_EXTENSIONS: List[str] = []
+    _file_extensions: List[str] = []  # accepted file extensions.
 
     # Parsing functions for each header section. Since we cannot forward declare
     # these nicely, this dict is a bit ugly in the implementing classes.
-    _STEPS: Dict[str, Callable[["Parser", DataLine], None]]
+    _steps: Dict[str, Callable[["Parser", DataLine], None]]
 
     def __init__(self, location: Union[str, Path]):
         typ = type(self).__name__
@@ -39,7 +38,7 @@ class Parser(ABC):
 
         # Insertion order is a CPython implementation detail in Py3.6, but from
         # Py3.7+ we can rely on insertion order as default behaviour.
-        self._state = next(iter(self._STEPS.keys()))
+        self._state = next(iter(self._steps.keys()))
         self._location = Path(location)
 
         if self.file_location() is None:
@@ -63,7 +62,7 @@ class Parser(ABC):
             logger.debug(f"Found existing file {self._location}.")
             return self._location
 
-        for extension in self._FILE_EXTENSIONS:
+        for extension in self._file_extensions:
             file = self._location.with_suffix(extension)
 
             if file.exists():
@@ -91,7 +90,7 @@ class Parser(ABC):
             if self._state == "ENDATA":
                 break
 
-            func = self._STEPS[self._state]
+            func = self._steps[self._state]
             func(self, data_line)
 
     def _read_file(self) -> Generator[DataLine, None, None]:
@@ -130,7 +129,7 @@ class Parser(ABC):
             # that should be parsed.
             return False
 
-        if header in self._STEPS or header == "ENDATA":
+        if header in self._steps or header == "ENDATA":
             logger.info(f"Now parsing the {header} section.")
 
             self._state = header

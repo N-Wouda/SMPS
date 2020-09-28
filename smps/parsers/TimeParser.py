@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class TimeParser(Parser):
-    _FILE_EXTENSIONS = [".tim", ".TIM", ".time", ".TIME"]
-    _STEPS = {
+    _file_extensions = [".tim", ".TIM", ".time", ".TIME"]
+    _steps = {
         "TIME": lambda self, data_line: self._process_time(data_line),
         "PERIODS": lambda self, data_line: self._process_periods(data_line),
     }

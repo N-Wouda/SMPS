@@ -2,20 +2,20 @@ from pathlib import Path
 
 from numpy.testing import assert_equal, assert_raises, assert_warns
 
-from smps import SMPS
+from smps import read_smps
 
 
 def test_raises_files_do_not_exist():
     with assert_raises(FileNotFoundError):
         # Weird string that should never exist.
-        SMPS("bogus_location/as2afsd76a")
+        read_smps("bogus_location/as2afsd76a")
 
-    SMPS("data/electric/LandS")  # this does exist, so should work.
+    read_smps("data/electric/LandS")  # this does exist, so should work.
 
 
 def test_warns_names_disagree():
     with assert_warns(UserWarning):
-        SMPS("data/test/different_names")
+        read_smps("data/test/different_names")
 
 
 def test_raises_zero_or_two_locations():
@@ -26,21 +26,21 @@ def test_raises_zero_or_two_locations():
     first three files then explicitly specify a set of SMPS files.
     """
     with assert_raises(ValueError):
-        SMPS()
+        read_smps()
 
     with assert_raises(ValueError):
-        SMPS("data/electric/LandS.cor", "data/electric/LandS.tim")
+        read_smps("data/electric/LandS.cor", "data/electric/LandS.tim")
 
 
 def test_one_location():
     """
     Tests if the location property returns the SMPS file location.
     """
-    smps = SMPS("data/electric/LandS")
+    data = read_smps("data/electric/LandS")
 
-    assert_equal(smps.core_location, Path("data/electric/LandS.cor"))
-    assert_equal(smps.time_location, Path("data/electric/LandS.tim"))
-    assert_equal(smps.stoch_location, Path("data/electric/LandS.sto"))
+    assert_equal(data.core_location, Path("data/electric/LandS.cor"))
+    assert_equal(data.time_location, Path("data/electric/LandS.tim"))
+    assert_equal(data.stoch_location, Path("data/electric/LandS.sto"))
 
 
 def test_three_locations():
@@ -49,27 +49,27 @@ def test_three_locations():
     time = Path("data/test/test_explicit_smps_specification_time")
     stoch = Path("data/test/test_explicit_smps_specification_stoch")
 
-    smps = SMPS(core, time, stoch)
+    data = read_smps(core, time, stoch)
 
-    assert_equal(smps.core_location, core.with_suffix(".cor"))
-    assert_equal(smps.time_location, time.with_suffix(".tim"))
-    assert_equal(smps.stoch_location, stoch.with_suffix(".sto"))
+    assert_equal(data.core_location, core.with_suffix(".cor"))
+    assert_equal(data.time_location, time.with_suffix(".tim"))
+    assert_equal(data.stoch_location, stoch.with_suffix(".sto"))
 
     # Same files, but now explicit with suffix.
     core = core.with_suffix(".cor")
     time = time.with_suffix(".tim")
     stoch = stoch.with_suffix(".sto")
 
-    smps = SMPS(core, time, stoch)
+    data = read_smps(core, time, stoch)
 
-    assert_equal(smps.core_location, core)
-    assert_equal(smps.time_location, time)
-    assert_equal(smps.stoch_location, stoch)
+    assert_equal(data.core_location, core)
+    assert_equal(data.time_location, time)
+    assert_equal(data.stoch_location, stoch)
 
 
 def test_more_than_three_locations():
     # Only the first three arguments (files) are used - the rest is ignored.
-    SMPS("data/electric/LandS.cor",
+    read_smps("data/electric/LandS.cor",
          "data/electric/LandS.tim",
          "data/electric/LandS.sto",
          "data/bogus/bogus",

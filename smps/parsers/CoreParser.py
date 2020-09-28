@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class CoreParser(Parser):
-    _FILE_EXTENSIONS = [".cor", ".COR", ".core", ".CORE"]
-    _STEPS = {
+    _file_extensions = [".cor", ".COR", ".core", ".CORE"]
+    _steps = {
         "NAME": lambda self, data_line: self._process_name(data_line),
         "ROWS": lambda self, data_line: self._process_rows(data_line),
         "COLUMNS": lambda self, data_line: self._process_columns(data_line),
