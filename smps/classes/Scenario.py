@@ -1,4 +1,5 @@
 import logging
+from functools import lru_cache
 from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -78,6 +79,7 @@ class Scenario:
         """
         return "ROOT" in self._parent.upper()
 
+    @lru_cache(1)
     def modifications_from_root(self) -> List[Tuple[str, str, float]]:
         """
         Returns all modifications relative to the root, that is, different from
