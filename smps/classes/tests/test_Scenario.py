@@ -88,14 +88,16 @@ def test_probability(prob: float):
 def test_clear(num_scenarios):
     # Creates a number of scenarios - these are not interesting, per se, only
     # that they are properly cleared from the cache once clear() is called.
-    [Scenario(f"Scen {idx}", "", "", 1 / num_scenarios)
-     for idx in range(num_scenarios)]
+    scenarios = [Scenario(f"Scen {idx}", "", "", 1 / num_scenarios)
+                 for idx in range(num_scenarios)]
 
     assert_equal(Scenario.num_scenarios(), num_scenarios)
+    assert_equal(Scenario.scenarios(), scenarios)
 
     Scenario.clear()
 
     assert_equal(Scenario.num_scenarios(), 0)
+    assert_equal(Scenario.scenarios(), [])
 
 
 @pytest.mark.parametrize("num_modifications", [5, 25, 50])
@@ -113,5 +115,60 @@ def test_modifications(num_modifications):
         scen.add_modification(constr, var, value)
 
     assert_equal(scen.modifications, modifications)
+
+
+def test_modifications_from_root_no_parent():
+    """
+    Should return the same as the regular modifications property, as there is
+    no additional parent information.
+    """
+    scen = Scenario("test", "root", "", 0.5)
+    assert_(scen.branches_from_root())
+
+    modifications = [("constr1", "row1", 1),
+                     ("constr2", "row2", 3.5),
+                     ("constr3", "row3", 10.8)]
+
+    for constr, var, value in modifications:
+        scen.add_modification(constr, var, value)
+
+    assert_equal(scen.modifications, modifications)
+    assert_equal(scen.modifications_from_root(), scen.modifications)
+
+
+def test_modifications_from_root_gets_all():
+    """
+    Tests if modifications_from_root gets all modifications, both from the
+    child scenario, and its parent.
+    """
+    parent = Scenario("parent", "root", "", 0.5)
+    assert_(parent.branches_from_root())
+
+    parent.add_modification("constr1", "row1", 1)
+    parent.add_modification("constr2", "row2", 2.5)
+
+    scen = Scenario("test", "parent", "", 0.5)
+    scen.add_modification("constr3", "row3", 8.1)
+
+    expected = parent.modifications + scen.modifications
+    assert_equal(scen.modifications_from_root(), expected)
+
+
+def test_modifications_from_root_overwrites_parent():
+    """
+    Tests if child modifications of the same constraint/variable pair overwrite
+    parent modifications, as they should (the child is more specific).
+    """
+    parent = Scenario("parent", "root", "", 0.5)
+    assert_(parent.branches_from_root())
+
+    parent.add_modification("constr1", "row1", 1)
+    parent.add_modification("constr2", "row2", 2.5)
+
+    scen = Scenario("test", "parent", "", 0.5)
+    scen.add_modification("constr2", "row2", 8.1)
+
+    expected = [("constr1", "row1", 1), ("constr2", "row2", 8.1)]
+    assert_equal(scen.modifications_from_root(), expected)
 
 # TODO

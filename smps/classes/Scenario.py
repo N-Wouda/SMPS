@@ -84,7 +84,7 @@ class Scenario:
         """
         Returns all modifications relative to the root, that is, different from
         the CORE file (this includes everything from the parent, its parent, and
-        so on until the root).
+        so on until the root). Cached after first call.
         """
         modifications = self.modifications
 
@@ -113,3 +113,7 @@ class Scenario:
         Returns the number of scenarios stored in cache.
         """
         return len(cls._scenarios)
+
+    @classmethod
+    def scenarios(cls) -> List["Scenario"]:
+        return [scen for scen in cls._scenarios.values()]
