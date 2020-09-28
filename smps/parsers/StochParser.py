@@ -51,6 +51,7 @@ class StochParser(Parser):
         constr = data_line.first_data_name()
         value = data_line.first_number()
 
+        assert self._scenario is not None  # just to be sure
         self._scenario.add_modification(constr, var, value)
 
         if data_line.has_second_data_entry():
