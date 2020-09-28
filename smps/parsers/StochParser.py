@@ -1,6 +1,6 @@
 import logging
 import warnings
-from typing import Optional
+from typing import List, Optional
 
 from smps.classes import DataLine, Scenario
 from .Parser import Parser
@@ -24,12 +24,17 @@ class StochParser(Parser):
         self._scenario: Optional[Scenario] = None
         # TODO
 
+    @property
+    def scenarios(self) -> List[Scenario]:
+        return Scenario.scenarios()
+
     def _process_stoch(self, data_line: DataLine):
         self._name = data_line.second_header_word()
 
         if not data_line.second_header_word():
-            warnings.warn("Stoch file has no value for the STOCH field.")
-            logger.warning("Stoch file has no value for the STOCH field.")
+            msg = "Stoch file has no value for the STOCH field."
+            warnings.warn(msg)
+            logger.warning(msg)
 
     def _process_indep(self, data_line: DataLine):
         pass  # TODO
@@ -64,17 +69,23 @@ class StochParser(Parser):
         res = super()._transition(data_line)
         param = data_line.second_header_word().upper()
 
-        if self._state in {"INDEP", "BLOCKS", "STOCH"}:
-            if param:
-                # TODO param types!
-                self._type_stoch = param
-            else:
-                self._type_stoch = "DISCRETE"
+        if self._state in {"INDEP", "BLOCKS", "SCENARIOS"} and not param:
+            self._type_stoch = "DISCRETE"
 
-                msg = f"Stoch type was not specified for {self._state};" \
-                      f" assuming DISCRETE."
+            msg = f"Stoch type not given for {self._state}; assuming DISCRETE."
+            logger.warning(msg)
+            warnings.warn(msg)
+            return True
 
-                logger.warning(msg)
-                warnings.warn(msg)
+        if self._state == "SCENARIOS" and param != "DISCRETE":
+            msg = "Cannot parse non-DISCRETE scenarios."
+            logger.error(msg)
+            raise ValueError(msg)
+
+        if self._state == "INDEP":
+            pass  # TODO
+
+        if self._state == "BLOCKS":
+            pass  # TODO
 
         return res

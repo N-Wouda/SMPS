@@ -48,7 +48,7 @@ class DataLine:
         """
         If True, this DataLine defines a section header. False otherwise.
         """
-        return self._raw[0] not in set(" *")
+        return self._raw[0] not in " *"
 
     def first_header_word(self):
         assert self.is_header()

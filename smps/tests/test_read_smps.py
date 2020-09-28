@@ -70,9 +70,9 @@ def test_three_locations():
 def test_more_than_three_locations():
     # Only the first three arguments (files) are used - the rest is ignored.
     read_smps("data/electric/LandS.cor",
-         "data/electric/LandS.tim",
-         "data/electric/LandS.sto",
-         "data/bogus/bogus",
-         "data/bogus/bogus")
+              "data/electric/LandS.tim",
+              "data/electric/LandS.sto",
+              "data/bogus/bogus",
+              "data/bogus/bogus")
 
 # TODO

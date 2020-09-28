@@ -160,11 +160,12 @@ class CoreParser(Parser):
         self._name = data_line.second_header_word()
 
         if not data_line.second_header_word():
-            warnings.warn("Core file has no value for the NAME field.")
-            logger.warning("Core file has no value for the NAME field.")
+            msg = "Core file has no value for the NAME field."
+            warnings.warn(msg)
+            logger.warning(msg)
 
     def _process_rows(self, data_line: DataLine):
-        assert data_line.indicator() in set("NELG")
+        assert data_line.indicator() in "NELG"
 
         # This is a "no restriction" row, which indicates an objective function.
         # There can be more than one such row, but there can only be one

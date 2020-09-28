@@ -47,8 +47,9 @@ class TimeParser(Parser):
         self._name = data_line.second_header_word()
 
         if not data_line.second_header_word():
-            warnings.warn("Time file has no value for the TIME field.")
-            logger.warning("Time file has no value for the TIME field.")
+            msg = "Time file has no value for the TIME field."
+            warnings.warn(msg)
+            logger.warning(msg)
 
     def _process_periods(self, data_line: DataLine):
         # TODO what about IMPLICIT/EXPLICIT?
