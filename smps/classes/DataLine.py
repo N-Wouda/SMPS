@@ -15,10 +15,21 @@ class DataLine:
         - Columns 40-47: second data name field,
         - Columns 50-61: second numeric field.
 
+    When a data line is a header, the following is available:
+        - Columns 1-14: first word field,
+        - Columns 15-72: second word field.
+
     Arguments
     ---------
     data_line : str
         Raw data line string, to be parsed.
+
+    References
+    ----------
+    - Birge, J.R., Dempster, M.A.H., Gassmann, H.I., Gunn, E., King, A.J.,
+      and Wallace, S.W. 1987. A Standard Input Format for Multiperiod Stochastic
+      Linear Programs. `WP-87-118`.
+      http://pure.iiasa.ac.at/id/eprint/2934/1/WP-87-118.pdf.
     """
 
     def __init__(self, data_line: str):
@@ -31,17 +42,21 @@ class DataLine:
         return self._raw[1:3].strip()
 
     def is_comment(self) -> bool:
-        return self._raw.lstrip().startswith("*")
+        return len(self._raw) == 0 or self._raw.lstrip().startswith("*")
 
     def is_header(self) -> bool:
         """
         If True, this DataLine defines a section header. False otherwise.
         """
-        return self._raw[0] not in set(" *")
+        return len(self._raw) >= 1 and self._raw[0] not in " *"
 
-    def header(self) -> str:
-        header, *_ = self._raw.split()
-        return header.strip().upper()
+    def first_header_word(self):
+        assert self.is_header()
+        return self._raw[0:14].strip()
+
+    def second_header_word(self):
+        assert self.is_header()
+        return self._raw[14:72].strip()
 
     def name(self) -> str:
         return self._raw[4:12].strip()
@@ -50,7 +65,8 @@ class DataLine:
         return self._raw[14:22].strip()
 
     def first_number(self) -> float:
-        return float(self._raw[24:36].strip())
+        string = self._raw[24:36].strip()
+        return float(string) if len(string) != 0 else float("nan")
 
     def has_second_data_entry(self) -> bool:
         # TODO is this sufficient to ensure both the name and number field
@@ -61,7 +77,8 @@ class DataLine:
         return self._raw[39:47].strip()
 
     def second_number(self) -> float:
-        return float(self._raw[49:61].strip())
+        string = self._raw[49:61].strip()
+        return float(string) if len(string) != 0 else float("nan")
 
     def raw(self) -> str:
         return self._raw

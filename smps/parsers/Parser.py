@@ -1,10 +1,8 @@
-from __future__ import annotations
-
 import logging
 import warnings
 from abc import ABC
 from pathlib import Path
-from typing import Callable, Dict, Generator, List, Union
+from typing import Callable, Dict, Generator, List, Optional, Union
 
 from smps.classes import DataLine
 
@@ -12,19 +10,41 @@ logger = logging.getLogger(__name__)
 
 
 class Parser(ABC):
-    # Accepted file extensions.
-    FILE_EXTENSIONS: List[str] = []
+    """
+    Base class for CORE, TIME, and STOCH parsers.
+
+    Arguments
+    ---------
+    location : Union[str, Path]
+        The location to be parsed. This can either be a fully formed file,
+        including file extension, or a general location identifying an SMPS
+        triplet. In case of the latter, the extension is inferred.
+
+    Raises
+    ------
+    FileNotFoundError
+        When the file pointed to by ``location`` does not exist, or no file
+        exists there with appropriate file extension.
+    """
+    _file_extensions: List[str] = []  # accepted file extensions.
 
     # Parsing functions for each header section. Since we cannot forward declare
     # these nicely, this dict is a bit ugly in the implementing classes.
-    STEPS: Dict[str, Callable[[Parser, DataLine], None]]
+    _steps: Dict[str, Callable[["Parser", DataLine], None]]
 
     def __init__(self, location: Union[str, Path]):
-        logger.debug(f"Creating Parser instance with '{location}'.")
+        typ = type(self).__name__
+        logger.debug(f"Creating {typ} instance with '{location}'.")
 
-        # From Py3.7+ we can rely on insertion order as default behaviour.
-        self._state = next(iter(self.STEPS.keys()))
+        # Insertion order is a CPython implementation detail in Py3.6, but from
+        # Py3.7+ we can rely on insertion order as default behaviour.
+        self._state = next(iter(self._steps.keys()))
         self._location = Path(location)
+
+        if self.file_location() is None:
+            msg = f"{typ}: {location} does not define an appropriate file."
+            logger.error(msg)
+            raise FileNotFoundError(msg)
 
         self._name = ""  # each file defines this field.
 
@@ -32,36 +52,30 @@ class Parser(ABC):
     def name(self) -> str:
         return self._name
 
-    def file_exists(self) -> bool:
-        """
-        Returns True if the file location points to a file of the appropriate
-        type for this parser, False if not.
-        """
-        return any(self._location.with_suffix(extension).exists()
-                   for extension in self.FILE_EXTENSIONS)
-
-    def file_location(self) -> Path:
+    def file_location(self) -> Optional[Path]:
         """
         Returns a Python path to the file this parser processes. Assumes
-         existence has been checked before calling this method (see
-         ``file_exists``).
+        existence has been checked before calling this method. Returns None
+        if the file could not be found.
         """
-        assert self.file_exists()
+        if self._location.exists():
+            logger.debug(f"Found existing file {self._location}.")
+            return self._location
 
-        for extension in self.FILE_EXTENSIONS:
+        for extension in self._file_extensions:
             file = self._location.with_suffix(extension)
 
             if file.exists():
                 logger.debug(f"Found existing file {file}.")
                 return file
 
+        return None
+
     def parse(self):
         """
         Parses the given file location.
         """
-        for line in self._line():
-            data_line = DataLine(line)
-
+        for data_line in self._read_file():
             # If any of these conditions is True, this data line is not
             # processed further.
             skip_when = (data_line.is_comment(),
@@ -71,27 +85,26 @@ class Parser(ABC):
             if any(skip_when):
                 continue
 
-            # This will likely never get hit, as ENDATA is generally the last
-            # line of an SMPS file. Nonetheless, it signals end of parsing, no
-            # matter what follows.
+            # This might never get hit as ENDATA is generally the last line of
+            # an SMPS file, so the ``continue`` above should end the parse.
             if self._state == "ENDATA":
                 break
 
-            func = self.STEPS[self._state]
+            func = self._steps[self._state]
             func(self, data_line)
 
-    def _line(self) -> Generator[str, None, None]:
+    def _read_file(self) -> Generator[DataLine, None, None]:
         """
         Reads the file, one line at a time (generator).
 
         Yields
         ------
-        str
-            A single line in the input file.
+        DataLine
+            A DataLine wrapping a single line in the input file.
         """
         with open(str(self.file_location())) as fh:
             for line in fh:
-                yield line
+                yield DataLine(line)
 
     def _transition(self, data_line: DataLine) -> bool:
         """
@@ -109,14 +122,14 @@ class Parser(ABC):
             otherwise.
         """
         assert data_line.is_header()
-        header = data_line.header()
+        header = data_line.first_header_word()
 
         if header == self._state:
             # This is very likely the first state, which has a name attribute
             # that should be parsed.
             return False
 
-        if header in self.STEPS or header == "ENDATA":
+        if header in self._steps or header == "ENDATA":
             logger.info(f"Now parsing the {header} section.")
 
             self._state = header

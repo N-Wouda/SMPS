@@ -1,7 +1,7 @@
 import logging
 import warnings
 from functools import lru_cache
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 from scipy.sparse import coo_matrix
@@ -13,13 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class CoreParser(Parser):
-    """
-    The core parser essentially parses the MPS part of the SMPS file triplet.
-    We follow http://lpsolve.sourceforge.net/5.5/mps-format.htm, and
-    http://tiny.cc/lsyxsz.
-    """
-    FILE_EXTENSIONS = [".cor", ".COR", ".core", ".CORE"]
-    STEPS = {
+    _file_extensions = [".cor", ".COR", ".core", ".CORE"]
+    _steps = {
         "NAME": lambda self, data_line: self._process_name(data_line),
         "ROWS": lambda self, data_line: self._process_rows(data_line),
         "COLUMNS": lambda self, data_line: self._process_columns(data_line),
@@ -28,30 +23,33 @@ class CoreParser(Parser):
         "RANGES": lambda self, data_line: self._process_ranges(data_line),
     }
 
-    def __init__(self, location: str):
+    def __init__(self, location):
         super().__init__(location)
 
-        self._constraint_names = []
-        self._senses = []
-        self._rhs: np.array = []
-        self._constr2idx = {}
+        # This list will contain all elements of the constrain matrix, as a list
+        # of (constraint, variable, value)-tuples.
+        self._elements: List[Tuple[str, str, float]] = []
 
         # This list contains all objective coefficients, as a list of
         # (variable, value)-tuples.
         self._obj_coeffs: List[Tuple[str, float]] = []
         self._objective_name = ""
 
-        # This list will contain all elements of the constrain matrix, as a list
-        # of (constraint, variable, value)-tuples.
-        self._elements: List[Tuple[str, str, float]] = []
-        self._variable_names = []
-        self._types = []
+        # Constraints.
+        self._constraint_names: List[str] = []
+        self._senses: List[str] = []
+        self._rhs: np.array = []
+
+        # Variables.
+        self._variable_names: List[str] = []
+        self._types: List[str] = []
         self._lb: np.array = []
         self._ub: np.array = []
-        self._var2idx = {}
 
-        # Flag for parsing integers
-        self._parse_ints = False
+        # Look-ups and flags.
+        self._constr2idx: Dict[str, int] = {}
+        self._var2idx: Dict[str, int] = {}
+        self._parse_ints = False  # flag for parsing integers
 
     @property
     def constraint_names(self) -> List[str]:
@@ -131,14 +129,14 @@ class CoreParser(Parser):
         return self._variable_names
 
     @property
-    def types(self) -> np.array:
+    def types(self) -> List[str]:
         """
-        Returns the variable types, as an array. These types are 'I' for
-        integer, 'C' for a continuous variable, and 'B' for a binary variable.
-        The first type belongs to the first variable, the second to the second
-        variable, and so on.
+        Returns the variable types, as a list. These types are 'I' for integers,
+        'C' for a continuous variable, and 'B' for a binary variable. The first
+        type belongs to the first variable, the second to the second variable,
+        and so on.
         """
-        return np.array(self._types)
+        return self._types
 
     @property
     def lower_bounds(self) -> np.array:
@@ -159,16 +157,15 @@ class CoreParser(Parser):
         return self._ub
 
     def _process_name(self, data_line: DataLine):
-        assert data_line.header() == "NAME"
+        self._name = data_line.second_header_word()
 
-        if len(data_line) > 15:
-            self._name = data_line.first_data_name()
-        else:
-            warnings.warn("Core file has no value for the NAME field.")
-            logger.warning("Core file has no value for the NAME field.")
+        if not data_line.second_header_word():
+            msg = "Core file has no value for the NAME field."
+            warnings.warn(msg)
+            logger.warning(msg)
 
     def _process_rows(self, data_line: DataLine):
-        assert data_line.indicator() in set("NELG")
+        assert data_line.indicator() in "NELG"
 
         # This is a "no restriction" row, which indicates an objective function.
         # There can be more than one such row, but there can only be one

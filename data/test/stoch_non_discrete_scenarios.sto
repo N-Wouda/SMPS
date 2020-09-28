@@ -1,0 +1,5 @@
+* This stoch file has non-discrete scenarios, instead they are "NORMAL". That's
+* not supported - scenario's MUST be discrete.
+STOCH         Test
+SCENARIOS     NORMAL
+ENDATA

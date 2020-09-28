@@ -1,0 +1,6 @@
+* Tests if passing three arguments to SMPS works.
+NAME          Test
+ROWS
+COLUMNS
+RHS
+ENDATA

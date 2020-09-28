@@ -1,1 +1,1 @@
-from .SMPS import SMPS
+from .read_smps import read_smps

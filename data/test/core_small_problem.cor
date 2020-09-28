@@ -6,7 +6,7 @@ ROWS
  E  CONSTR2
  E  CONSTR3
  G  CONSTR4
- G  CONSTR5
+ G  OTHER
 COLUMNS
     X1        CONSTR1   1.0            CONSTR2   2.5
     X1        CONSTR3   18

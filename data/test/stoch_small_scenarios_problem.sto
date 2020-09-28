@@ -1,0 +1,11 @@
+* Tests if parsing SCENARIOS works as it should on this small, but complete
+* instance.
+STOCH         Test
+SCENARIOS     DISCRETE
+ SC SCEN01    ROOT      0.333333       STAGE-2
+    RHS       C1        1              C2        5.0001
+    X1        C1        5
+ SC SCEN02    SCEN01    0.666667       STAGE-3
+    RHS       C1        8
+    X2        C2        7
+ENDATA
