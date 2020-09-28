@@ -22,8 +22,8 @@ branches:       # since the master branch is the only one where PRs are
 
 script:
   - pipenv run pytest
-  - cat test.log
   - pipenv run mypy ./ || true
+  - cat test.log
 
 # TODO deploy
 
