@@ -173,18 +173,18 @@ class CoreParser(Parser):
         # ignore any subsequent "no restriction" rows.
         if data_line.indicator() == 'N':
             if self.objective_name == "":
-                logger.debug(f"Setting {data_line.name()} as objective.")
-                self._objective_name = data_line.name()
+                logger.debug(f"Setting {data_line.first_name()} as objective.")
+                self._objective_name = data_line.first_name()
 
             return
         else:
-            self._constraint_names.append(data_line.name())
+            self._constraint_names.append(data_line.first_name())
             self._senses.append(data_line.indicator())
 
-            self._constr2idx[data_line.name()] = len(self._constraint_names) - 1
+            self._constr2idx[data_line.first_name()] = len(self._constraint_names) - 1
 
     def _process_columns(self, data_line: DataLine):
-        name = data_line.first_data_name()
+        name = data_line.second_name()
 
         if "MARKER" in name.upper():
             self._parse_marker(data_line)
@@ -195,10 +195,10 @@ class CoreParser(Parser):
         if len(self._rhs) != len(self.constraint_names):
             self._rhs = np.zeros(len(self.constraint_names))
 
-        self._add_rhs(data_line.first_data_name(), data_line.first_number())
+        self._add_rhs(data_line.second_name(), data_line.first_number())
 
-        if data_line.has_second_data_entry():
-            self._add_rhs(data_line.second_data_name(),
+        if data_line.has_third_name() and data_line.has_second_number():
+            self._add_rhs(data_line.third_name(),
                           data_line.second_number())
 
     def _process_bounds(self, data_line: DataLine):
@@ -234,7 +234,7 @@ class CoreParser(Parser):
             logger.error(msg)
             raise ValueError(msg)
 
-        var = data_line.first_data_name()
+        var = data_line.second_name()
         idx = self._var2idx[var]
 
         # The value is clear from the type, and need not have been specified.
@@ -308,10 +308,10 @@ class CoreParser(Parser):
             warnings.warn(msg)
 
     def _parse_marker(self, data_line: DataLine):
-        assert data_line.has_second_data_entry()
+        assert data_line.has_third_name()
 
-        name = data_line.name()
-        marker_type = data_line.second_data_name()
+        name = data_line.first_name()
+        marker_type = data_line.third_name()
 
         logger.debug(f"Encountered a {marker_type} marker named {name}.")
 
@@ -322,18 +322,18 @@ class CoreParser(Parser):
             self._parse_ints = False
 
     def _parse_column(self, data_line: DataLine):
-        var = data_line.name()
+        var = data_line.first_name()
 
         if var not in self._var2idx:
             self._variable_names.append(var)
             self._types.append('I' if self._parse_ints else 'C')
             self._var2idx[var] = len(self._variable_names) - 1
 
-        constr = data_line.first_data_name()
+        constr = data_line.second_name()
         value = data_line.first_number()
         self._add_value(constr, var, value)
 
-        if data_line.has_second_data_entry():
-            constr = data_line.second_data_name()
+        if data_line.has_third_name() and data_line.has_second_number():
+            constr = data_line.third_name()
             value = data_line.second_number()
             self._add_value(constr, var, value)

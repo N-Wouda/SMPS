@@ -44,23 +44,23 @@ class StochParser(Parser):
 
     def _process_scenarios(self, data_line: DataLine):
         if data_line.indicator() == "SC":  # new scenario
-            scen = Scenario(data_line.name(),
-                            data_line.first_data_name(),
-                            data_line.second_data_name(),
+            scen = Scenario(data_line.first_name(),
+                            data_line.second_name(),
+                            data_line.third_name(),
                             data_line.first_number())
 
             self._scenario = scen
             return
 
-        var = data_line.name()
-        constr = data_line.first_data_name()
+        var = data_line.first_name()
+        constr = data_line.second_name()
         value = data_line.first_number()
 
         assert self._scenario is not None  # just to be sure
         self._scenario.add_modification(constr, var, value)
 
-        if data_line.has_second_data_entry():
-            constr = data_line.second_data_name()
+        if data_line.has_third_name() and data_line.has_second_number():
+            constr = data_line.third_name()
             value = data_line.second_number()
 
             self._scenario.add_modification(constr, var, value)

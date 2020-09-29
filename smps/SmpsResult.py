@@ -45,3 +45,5 @@ class SmpsResult:
         return self._stoch.file_location()
 
     # TODO
+    # TODO objective cannot be in any stage other than the first, when parsing
+    #  EXPLICIT time periods.
