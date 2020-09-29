@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import Any, Dict, Tuple
 
 import numpy as np
 from scipy.stats import (beta, gamma, lognorm, multivariate_normal, norm,
@@ -27,7 +28,7 @@ class Indep:
         self._distribution = distribution
         self._modification = modification
 
-        self._randomness = {}
+        self._randomness: Dict[Tuple[str, str], Any] = {}
         self._discrete = defaultdict(list)
 
     def add_entry(self, data_line: DataLine):
@@ -60,7 +61,6 @@ class Indep:
         a = data_line.first_number()
         b = data_line.second_number()
 
-        # Uniform[a, b] == uniform(a, b - a).
         distribution = uniform(loc=a, scale=b - a)
 
         self._add(data_line, distribution)
@@ -69,7 +69,6 @@ class Indep:
         mean = data_line.first_number()
         var = data_line.second_number()
 
-        # Normal[mean, var] == norm(mean, std).
         distribution = norm(loc=mean, scale=np.sqrt(var))
 
         self._add(data_line, distribution)
@@ -78,8 +77,7 @@ class Indep:
         a = data_line.first_number()
         b = data_line.second_number()
 
-        # TODO
-        distribution = gamma()
+        distribution = gamma()  # TODO
 
         self._add(data_line, distribution)
 
@@ -87,8 +85,7 @@ class Indep:
         a = data_line.first_number()
         b = data_line.second_number()
 
-        # TODO
-        distribution = beta()
+        distribution = beta()  # TODO
 
         self._add(data_line, distribution)
 
@@ -96,8 +93,7 @@ class Indep:
         a = data_line.first_number()
         b = data_line.second_number()
 
-        # TODO
-        distribution = lognorm()
+        distribution = lognorm()  # TODO
 
         self._add(data_line, distribution)
 
@@ -105,8 +101,7 @@ class Indep:
         a = data_line.first_number()
         b = data_line.second_number()
 
-        # TODO
-        distribution = multivariate_normal()
+        distribution = multivariate_normal()  # TODO
 
         self._add(data_line, distribution)
 
