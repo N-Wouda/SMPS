@@ -20,7 +20,7 @@ class TimeParser(Parser):
     def __init__(self, location):
         super().__init__(location)
 
-        self._time_type = "IMPLICIT"
+        self._param = "IMPLICIT"
         self._stage_names: List[str] = []
 
         # For an IMPLICIT specification.
@@ -72,8 +72,14 @@ class TimeParser(Parser):
 
     @property
     def time_type(self) -> str:
-        assert self._time_type in {"IMPLICIT", "EXPLICIT"}
-        return self._time_type
+        """
+        Type of TIME file. Returns one of {"IMPLICIT", "EXPLICIT"}. In the
+        former case, the CORE file is temporally ordered and can be parsed
+        easily into different stages. In the latter, an explicit stage
+        assignment is given for each row (constraint) and column (variable).
+        """
+        assert self._param in {"IMPLICIT", "EXPLICIT"}
+        return self._param
 
     def _process_time(self, data_line: DataLine):
         self._name = data_line.second_header_word()
@@ -89,7 +95,7 @@ class TimeParser(Parser):
         period = data_line.third_name()
         self._stage_names.append(period)
 
-        if self._time_type == "IMPLICIT":
+        if self._param == "IMPLICIT":
             # In the IMPLICIT formulation, the PERIODS section also contains
             # the (var, constr) offsets of this stage's CORE data.
             var = data_line.first_name()
@@ -116,7 +122,7 @@ class TimeParser(Parser):
         # Default is implicit (see Gassmann on the PERIODS section). So  we need
         # to update in case the param in EXPLICIT, the only other option.
         if self._state == "PERIODS" and param == "EXPLICIT":
-            self._time_type = "EXPLICIT"
+            self._param = "EXPLICIT"
             return True
 
         return res

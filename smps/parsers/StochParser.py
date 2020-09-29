@@ -15,12 +15,14 @@ class StochParser(Parser):
         "INDEP": lambda self, data_line: self._process_indep(data_line),
         "BLOCKS": lambda self, data_line: self._process_blocks(data_line),
         "SCENARIOS": lambda self, data_line: self._process_scenarios(data_line),
+        "NODES": lambda self, data_line: self._process_nodes(data_line),
+        "DISTRIB": lambda self, data_line: self._process_distrib(data_line),
     }
 
     def __init__(self, location):
         super().__init__(location)
 
-        self._type_stoch = ""
+        self._param = ""
         self._scenario: Optional[Scenario] = None
         # TODO
 
@@ -43,6 +45,8 @@ class StochParser(Parser):
         pass  # TODO
 
     def _process_scenarios(self, data_line: DataLine):
+        assert self._param == "DISCRETE"
+
         if data_line.indicator() == "SC":  # new scenario
             scen = Scenario(data_line.first_name(),
                             data_line.second_name(),
@@ -65,12 +69,21 @@ class StochParser(Parser):
 
             self._scenario.add_modification(constr, var, value)
 
+    def _process_nodes(self, data_line: DataLine):
+        pass  # TODO
+
+    def _process_distrib(self, data_line: DataLine):
+        pass  # TODO
+
     def _transition(self, data_line):
         res = super()._transition(data_line)
         param = data_line.second_header_word().upper()
 
-        if self._state in {"INDEP", "BLOCKS", "SCENARIOS"} and not param:
-            self._type_stoch = "DISCRETE"
+        if self._state == "STOCH" or self._state == "ENDATA":
+            return res
+
+        if not param:
+            self._param = "DISCRETE"
 
             msg = f"Stoch type not given for {self._state}; assuming DISCRETE."
             logger.warning(msg)
@@ -82,10 +95,17 @@ class StochParser(Parser):
             logger.error(msg)
             raise ValueError(msg)
 
-        if self._state == "INDEP":
-            pass  # TODO
+        accepted_distrs = {"DISCRETE", "UNIFORM", "NORMAL", "GAMMA", "BETA",
+                           "LOGNORM", "MVNORMAL"}
 
-        if self._state == "BLOCKS":
-            pass  # TODO
+        # The BLOCK or INDEP data is generated from a 2-parameter distribution.
+        if param in accepted_distrs:
+            self._param = param
+            return res
+
+        # Linear transformations. These are (AFAIK) only defined for BLOCKS.
+        if self._state == "BLOCKS" and param in {"LINTR", "LINTRAN"}:
+            self._param = param
+            return res
 
         return res

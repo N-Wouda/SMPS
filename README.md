@@ -9,6 +9,9 @@ TODO user manual/documentation
 
 TODO pip install
 
+TODO limitations (subroutines, network, chance/ICC constraints,
+                  quadratic objective, robust optimisation)
+
 ## Motivation
 
 To the best of my knowledge, there are three projects for parsing SMPS files in 
@@ -32,10 +35,6 @@ parsing SMPS files in a solver-agnostic fashion, which the existing projects
 do not provide.
 
 ## How to use
-
-TODO
-
-## How to develop
 
 TODO
 

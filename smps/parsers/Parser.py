@@ -125,8 +125,8 @@ class Parser(ABC):
         header = data_line.first_header_word()
 
         if header == self._state:
-            # This is very likely the first state, which has a name attribute
-            # that should be parsed.
+            # This is the initial state, which has a name attribute that should
+            # be parsed.
             return False
 
         if header in self._steps or header == "ENDATA":

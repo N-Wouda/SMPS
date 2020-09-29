@@ -16,6 +16,13 @@ class SmpsResult:
         TimeParser instance that was populated with the TIME data.
     stoch : StochParser
         StochParser instance that was populated with the STOCH data.
+
+    Notes
+    -----
+    - The STOCH file can contain SCENARIOS, NODES, or INDEP/BLOCK/DISTRIB
+      sections. These three ways are mutually exclusive: if one is present (say
+      SCENARIOS), the others (in this case, INDEP/BLOCK/DISTRIB and NODES)
+      cannot be used.
     """
 
     def __init__(self, core: CoreParser, time: TimeParser, stoch: StochParser):
