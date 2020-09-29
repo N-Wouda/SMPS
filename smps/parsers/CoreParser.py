@@ -12,6 +12,10 @@ from .Parser import Parser
 logger = logging.getLogger(__name__)
 
 
+_BOUNDS_TYPES = {"LO", "UP", "FX", "FR", "MI", "PL", "BV", "LI", "UI"}
+_CONSTRAINT_SENSES = {'N', 'L', 'E', 'G'}
+
+
 class CoreParser(Parser):
     _file_extensions = [".cor", ".COR", ".core", ".CORE"]
     _steps = {
@@ -165,7 +169,7 @@ class CoreParser(Parser):
             logger.warning(msg)
 
     def _process_rows(self, data_line: DataLine):
-        assert data_line.indicator() in "NELG"
+        assert data_line.indicator() in _CONSTRAINT_SENSES
 
         # This is a "no restriction" row, which indicates an objective function.
         # There can be more than one such row, but there can only be one
@@ -226,10 +230,9 @@ class CoreParser(Parser):
             self._lb = np.zeros(len(self.variable_names))
             self._ub = np.full(len(self.variable_names), np.inf)
 
-        accepted_types = {"LO", "UP", "FX", "FR", "MI", "PL", "BV", "LI", "UI"}
         bound_type = data_line.indicator()
 
-        if bound_type not in accepted_types:
+        if bound_type not in _BOUNDS_TYPES:
             msg = f"Bounds of type {bound_type} are not understood."
             logger.error(msg)
             raise ValueError(msg)
