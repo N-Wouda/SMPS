@@ -74,6 +74,7 @@ def test_is_comment(line, expected):
 @pytest.mark.parametrize("line,expected", [("ROWS", True),
                                            (" N  OBJ", False),
                                            ("* some text", False),
+                                           ("*", False),
                                            ("", False)])
 def test_is_header(line, expected):
     """
