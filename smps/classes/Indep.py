@@ -33,7 +33,8 @@ class Indep:
 
     def add_entry(self, data_line: DataLine):
         """
-        Common interface for adding many types of distributions to the
+        Common interface for adding (new) independent random variables of
+        various distributions.
         """
         funcs = {
             "DISCRETE": self.add_discrete,

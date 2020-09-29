@@ -45,6 +45,21 @@ def test_warns_raises_missing_stochasticity_parameter():
         parser.parse()
 
 
+@pytest.mark.parametrize('file', ['stoch_unknown_modification_type',
+                                  'stoch_unknown_distribution_type',
+                                  'stoch_blocks_unknown_transformation_type'])
+def test_raises_unknown_header_keywords(file):
+    """
+    Tests if parsing various files raises a ValueError, due to strange header
+    specifications (e.g. unknown distribution for INDEP/BLOCKS, unknown type
+    of modification).
+    """
+    parser = StochParser("data/test/" + file)
+
+    with assert_raises(ValueError):
+        parser.parse()
+
+
 @pytest.mark.usefixtures("clear_scenarios")
 def test_parses_scenarios_sizes3():
     """

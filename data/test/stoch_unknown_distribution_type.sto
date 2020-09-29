@@ -1,0 +1,5 @@
+* For the INDEP section, this file defines the data distribution to be
+* "STRANGE", which is not understood. The implementation should throw an error.
+STOCH         Test
+INDEP         STRANGE
+ENDATA
