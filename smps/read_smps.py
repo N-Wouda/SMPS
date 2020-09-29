@@ -48,7 +48,7 @@ def read_smps(*locations: Union[str, Path]) -> SmpsResult:
       a brief overview of various parts of the other SMPS file. Furthermore,
       we use Gassmann's extensive notes here: http://tiny.cc/b87ysz.
     """
-    logger.debug(f"Creating an SMPS instance with arguments {locations}.")
+    logger.debug(f"Parsing an SMPS triplet at locations {locations}.")
 
     if len(locations) == 1:
         location = Path(locations[0])

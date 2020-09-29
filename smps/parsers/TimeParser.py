@@ -58,7 +58,7 @@ class TimeParser(Parser):
     def explicit_constraints(self) -> List[Tuple[str, str]]:
         """
         Returns a list of (constr, period)-tuples, that uniquely assigns each
-        constraint to a stage. Cached after first call.
+        constraint to a stage.
         """
         return self._explicit_constraints
 
@@ -66,7 +66,7 @@ class TimeParser(Parser):
     def explicit_variables(self) -> List[Tuple[str, str]]:
         """
         Returns a list of (var, period)-tuples, that uniquely assigns each
-        variable to a stage. Cached after first call.
+        variable to a stage.
         """
         return self._explicit_variables
 

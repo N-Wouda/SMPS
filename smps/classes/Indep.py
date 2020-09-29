@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from typing import Any, Dict, Tuple
 
@@ -6,6 +7,13 @@ from scipy.stats import (beta, gamma, lognorm, multivariate_normal, norm,
                          uniform)
 
 from .DataLine import DataLine
+
+logger = logging.getLogger(__name__)
+
+# TODO these will also be needed for Blocks - move somewhere else.
+MODIFICATIONS = {"ADD", "MULTIPLY", "REPLACE"}
+DISTRIBUTIONS = {"DISCRETE", "UNIFORM", "NORMAL", "GAMMA", "BETA",
+                 "LOGNORM", "MVNORMAL"}
 
 
 class Indep:
@@ -25,6 +33,18 @@ class Indep:
     """
 
     def __init__(self, distribution: str, modification: str = "REPLACE"):
+        logger.debug(f"Creating Indep({distribution}, {modification})")
+
+        if modification not in MODIFICATIONS:
+            msg = f"Modification {modification} is not understood."
+            logger.error(msg)
+            raise ValueError(msg)
+
+        if distribution not in DISTRIBUTIONS:
+            msg = f"Distribution {distribution} is not understood."
+            logger.error(msg)
+            raise ValueError(msg)
+
         self._distribution = distribution
         self._modification = modification
 

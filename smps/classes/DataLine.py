@@ -37,7 +37,7 @@ class DataLine:
     def __init__(self, data_line: str):
         data_line = data_line.rstrip()
 
-        logger.debug(f"Creating DataLine instance with '{data_line}'.")
+        logger.debug(f"Creating DataLine('{data_line}').")
         self._raw = data_line
 
     def indicator(self) -> str:

@@ -7,11 +7,6 @@ from .Parser import Parser
 
 logger = logging.getLogger(__name__)
 
-_TRANSFORMS = {"LINTR", "LINTRAN"}
-_MODIFICATIONS = {"ADD", "MULTIPLY", "REPLACE"}
-_DISTRIBUTIONS = {"DISCRETE", "UNIFORM", "NORMAL", "GAMMA", "BETA",
-                  "LOGNORM", "MVNORMAL"}
-
 
 class StochParser(Parser):
     _file_extensions = [".sto", ".STO", ".stoch", ".STOCH"]
@@ -101,21 +96,8 @@ class StochParser(Parser):
             # notes on the INDEP/BLOCKS sections).
             mod = "REPLACE"
 
-        if mod not in _MODIFICATIONS:
-            msg = f"Modification {mod} is not understood."
-            logger.error(msg)
-            raise ValueError(msg)
-
         if not distr:
             msg = f"Distribution not given for {self._state}."
-            logger.error(msg)
-            raise ValueError(msg)
-
-        raise_when = (self._state == "BLOCKS" and distr not in _TRANSFORMS,
-                      distr not in _DISTRIBUTIONS)
-
-        if any(raise_when):
-            msg = f"Distribution {distr} is not understood."
             logger.error(msg)
             raise ValueError(msg)
 

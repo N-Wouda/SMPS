@@ -34,7 +34,7 @@ class Parser(ABC):
 
     def __init__(self, location: Union[str, Path]):
         typ = type(self).__name__
-        logger.debug(f"Creating {typ} instance with '{location}'.")
+        logger.debug(f"Creating {typ}('{location}').")
 
         # Insertion order is a CPython implementation detail in Py3.6, but from
         # Py3.7+ we can rely on insertion order as default behaviour.
