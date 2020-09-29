@@ -7,7 +7,7 @@ from .Parser import Parser
 
 logger = logging.getLogger(__name__)
 
-_LINEAR_TRANSFORMATIONS = {"LINTR", "LINTRAN"}
+_TRANSFORMS = {"LINTR", "LINTRAN"}
 _MODIFICATIONS = {"ADD", "MULTIPLY", "REPLACE"}
 _DISTRIBUTIONS = {"DISCRETE", "UNIFORM", "NORMAL", "GAMMA", "BETA",
                   "LOGNORM", "MVNORMAL"}
@@ -27,11 +27,8 @@ class StochParser(Parser):
     def __init__(self, location):
         super().__init__(location)
 
-        self._distribution = ""
-        self._modification = ""
-
-        self._scenario: Optional[Scenario] = None
-        self._indep = Indep()
+        self._current_scen: Optional[Scenario] = None
+        self._indep_sections: List[Indep] = []
         # TODO
 
     @property
@@ -47,42 +44,41 @@ class StochParser(Parser):
             logger.warning(msg)
 
     def _process_indep(self, data_line: DataLine):
-        self._indep.add_entry(self._distribution, data_line)
+        assert len(self._indep_sections) >= 1
+        indep = self._indep_sections[-1]
+        indep.add_entry(data_line)
 
     def _process_blocks(self, data_line: DataLine):
         pass  # TODO
 
     def _process_scenarios(self, data_line: DataLine):
-        assert self._distribution == "DISCRETE"
-        assert self._modification == "REPLACE"
-
         if data_line.indicator() == "SC":  # new scenario
             scen = Scenario(data_line.first_name(),
                             data_line.second_name(),
                             data_line.third_name(),
                             data_line.first_number())
 
-            self._scenario = scen
+            self._current_scen = scen
             return
 
         var = data_line.first_name()
         constr = data_line.second_name()
         value = data_line.first_number()
 
-        assert self._scenario is not None  # just to be sure
-        self._scenario.add_modification(constr, var, value)
+        assert self._current_scen is not None  # just to be sure
+        self._current_scen.add_modification(constr, var, value)
 
         if data_line.has_third_name() and data_line.has_second_number():
             constr = data_line.third_name()
             value = data_line.second_number()
 
-            self._scenario.add_modification(constr, var, value)
+            self._current_scen.add_modification(constr, var, value)
 
     def _process_nodes(self, data_line: DataLine):
-        pass  # TODO
+        raise NotImplementedError  # TODO maybe at some point in the future
 
     def _process_distrib(self, data_line: DataLine):
-        pass  # TODO
+        raise NotImplementedError  # TODO maybe at some point in the future
 
     def _transition(self, data_line):
         res = super()._transition(data_line)
@@ -93,42 +89,39 @@ class StochParser(Parser):
             return res
 
         if self._state == "SCENARIOS":
-            # No other type of scenario is understood (nor given in the
-            # standard), so this we can quit early here.
-            self._distribution = "DISCRETE"
-            self._modification = "REPLACE"
+            # For SCENARIOS, only DISCRETE and REPLACE are understood (and
+            # documented in the manual), so we can quit early here.
             return True
 
-        distribution = data_line.second_name().upper()
-        modification = data_line.third_name().upper()
+        distr = data_line.second_name().upper()
+        mod = data_line.third_name().upper()
 
-        if not modification:
-            # When not specified, this is the default value (see  Gassmann's
+        if not mod:
+            # When not specified, this is the default value (see Gassmann's
             # notes on the INDEP/BLOCKS sections).
-            modification = "REPLACE"
+            mod = "REPLACE"
 
-        if modification in _MODIFICATIONS:
-            self._modification = modification
-        else:
-            msg = f"Modification {modification} is not understood."
+        if mod not in _MODIFICATIONS:
+            msg = f"Modification {mod} is not understood."
             logger.error(msg)
             raise ValueError(msg)
 
-        if self._state == "BLOCKS" and distribution in _LINEAR_TRANSFORMATIONS:
-            # Linear transformations. These are (AFAIK) only defined for BLOCKS.
-            self._distribution = distribution
-            return True
-
-        if not distribution:
+        if not distr:
             msg = f"Distribution not given for {self._state}."
             logger.error(msg)
             raise ValueError(msg)
 
-        if distribution in _DISTRIBUTIONS:
-            self._distribution = distribution
-        else:
-            msg = f"Distribution {distribution} is not understood."
+        raise_when = (self._state == "BLOCKS" and distr not in _TRANSFORMS,
+                      distr not in _DISTRIBUTIONS)
+
+        if any(raise_when):
+            msg = f"Distribution {distr} is not understood."
             logger.error(msg)
             raise ValueError(msg)
+
+        if self._state == "INDEP":
+            self._indep_sections.append(Indep(distr, mod))
+
+        # TODO make Block/Node?
 
         return res
