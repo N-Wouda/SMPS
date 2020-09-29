@@ -7,6 +7,10 @@ from .Parser import Parser
 
 logger = logging.getLogger(__name__)
 
+_LINEAR_TRANSFORMATIONS = {"LINTR", "LINTRAN"}
+_DISTRIBUTIONS = {"DISCRETE", "UNIFORM", "NORMAL", "GAMMA", "BETA",
+                  "LOGNORM", "MVNORMAL"}
+
 
 class StochParser(Parser):
     _file_extensions = [".sto", ".STO", ".stoch", ".STOCH"]
@@ -95,16 +99,13 @@ class StochParser(Parser):
             logger.error(msg)
             raise ValueError(msg)
 
-        accepted_distrs = {"DISCRETE", "UNIFORM", "NORMAL", "GAMMA", "BETA",
-                           "LOGNORM", "MVNORMAL"}
-
         # The BLOCK or INDEP data is generated from a 2-parameter distribution.
-        if param in accepted_distrs:
+        if param in _DISTRIBUTIONS:
             self._param = param
             return res
 
         # Linear transformations. These are (AFAIK) only defined for BLOCKS.
-        if self._state == "BLOCKS" and param in {"LINTR", "LINTRAN"}:
+        if self._state == "BLOCKS" and param in _LINEAR_TRANSFORMATIONS:
             self._param = param
             return res
 
