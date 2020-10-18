@@ -29,9 +29,13 @@ def test_raises_strange_modification_type(modification):
     assert_equal(indep.modification, modification)
 
 
+# TODO combine this somewhere - no need for a long list in this test
 @pytest.mark.parametrize("distr,expected", [("DISCRETE", True),
+                                            ("UNIFORM", False),
                                             ("NORMAL", False),
-                                            ("BETA", False)])
+                                            ("GAMMA", False),
+                                            ("BETA", False),
+                                            ("LOGNORM", False)])
 def test_is_finite(distr, expected):
     """
     Tests if ``is_finite()`` returns True for finite (discrete) distributions,
@@ -41,13 +45,29 @@ def test_is_finite(distr, expected):
 
 
 def test_uniform():
-    pass  # TODO
+    """
+    Tests if a uniform distribution section is parsed correctly, and returns an
+    appropriately set uniform distribution (from ``scipy.stats``).
+    """
+    indep = Indep("UNIFORM")
+
+    # A general uniform distribution. Should parse as (VAR, CONSTR) ~ U[0, 5].
+    data_line = DataLine("    VAR       CONSTR    0.0                      5.0")
+    indep.add_entry(data_line)
+
+    assert_equal(len(indep), 1)
+
+    distr = indep.get_for("VAR", "CONSTR")
+
+    # Mean is (5 - 0) / 2, variance (5 - 0)^2 / 12.
+    assert_almost_equal(distr.mean(), 2.5)
+    assert_almost_equal(distr.var(), 5 ** 2 / 12)
 
 
 def test_normal():
     """
-    Tests if a discrete section is parsed correctly, and returns an appropriate
-    discrete distribution.
+    Tests if a normal distribution section is parsed correctly, and returns an
+    appropriately set normal distribution (from ``scipy.stats``).
     """
     indep = Indep("NORMAL")
 
@@ -68,21 +88,33 @@ def test_normal():
 
 
 def test_gamma():
+    """
+    Tests if a Gamma distribution section is parsed correctly, and returns an
+    appropriate Gamma distribution (from ``scipy.stats``).
+    """
     pass  # TODO
 
 
 def test_beta():
+    """
+    Tests if a Beta distribution section is parsed correctly, and returns an
+    appropriate Beta distribution (from ``scipy.stats``).
+    """
     pass  # TODO
 
 
-def test_lognorm():
+def test_log_normal():
+    """
+    Tests if a log normal distribution section is parsed correctly, and returns
+    an appropriate log normal distribution (from ``scipy.stats``).
+    """
     pass  # TODO
 
 
 def test_discrete():
     """
     Tests if a discrete section is parsed correctly, and returns an appropriate
-    discrete distribution.
+    discrete distribution (from ``scipy.stats``).
     """
     indep = Indep("DISCRETE")
 
