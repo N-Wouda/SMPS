@@ -1,5 +1,5 @@
 import pytest
-from numpy.testing import assert_equal, assert_raises
+from numpy.testing import assert_almost_equal, assert_equal, assert_raises
 
 from smps.classes import DataLine, Indep
 from smps.constants import DISTRIBUTIONS, MODIFICATIONS
@@ -73,7 +73,24 @@ def test_uniform():
 
 
 def test_normal():
-    pass
+    """
+    Tests if a discrete section is parsed correctly, and returns an appropriate
+    discrete distribution.
+    """
+    indep = Indep("NORMAL")
+
+    # Inspired by the the LandS stoch file. Normal distribution, as
+    # (RHS, DEMAND1) ~ N(mu = 7, sigma^2 = 2)
+    data_line = DataLine("    RHS       DEMAND1   7.0            PERIOD2   2")
+    indep.add_entry(data_line)
+
+    distr = indep.get_for("RHS", "DEMAND1")
+
+    assert_almost_equal(distr.mean(), 7)
+    assert_almost_equal(distr.var(), 2)
+
+    # Since it's a symmetric distribution.
+    assert_almost_equal([distr.mean(), distr.median()], [7, 7])
 
 
 def test_gamma():
@@ -89,4 +106,23 @@ def test_lognorm():
 
 
 def test_discrete():
-    pass
+    """
+    Tests if a discrete section is parsed correctly, and returns an appropriate
+    discrete distribution.
+    """
+    indep = Indep("DISCRETE")
+
+    # First part of the LandS stoch file. Discrete distribution (p_i, x_i), with
+    # [(0.3, 3), (0.4, 5), (0.3, 7)].
+    lines = ["    RHS       DEMAND1   3.0            PERIOD2   0.3",
+             "    RHS       DEMAND1   5.0            PERIOD2   0.4",
+             "    RHS       DEMAND1   7.0            PERIOD2   0.3"]
+
+    for line in lines:
+        data_line = DataLine(line)
+        indep.add_entry(data_line)
+
+    distr = indep.get_for("RHS", "DEMAND1")
+
+    assert_almost_equal(distr.pk, [0.3, 0.4, 0.3])
+    assert_almost_equal(distr.xk, [3, 5, 7])

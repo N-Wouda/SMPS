@@ -1,10 +1,8 @@
 import logging
-from collections import defaultdict
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
-from scipy.stats import (beta, gamma, lognorm, norm,
-                         uniform)
+from scipy.stats import beta, gamma, lognorm, norm, rv_discrete, uniform
 
 from smps.constants import DISTRIBUTIONS, MODIFICATIONS
 from .DataLine import DataLine
@@ -43,8 +41,11 @@ class Indep:
         self._distribution = distribution
         self._modification = modification
 
+        # These are split because a discrete distribution is constructed
+        # value-by-value. Upon return (see get_for()) a scipy.stats discrete
+        # distribution is created.
         self._randomness: Dict[Tuple[str, str], Any] = {}
-        self._discrete = defaultdict(list)
+        self._discrete: Dict[Tuple[str, str], List[Tuple[float, float]]] = {}
 
     @property
     def distribution(self) -> str:
@@ -57,10 +58,23 @@ class Indep:
     def __len__(self) -> int:
         return len(self._randomness) + len(self._discrete)
 
+    def get_for(self, var: str, constr: str):
+        """
+        Returns the randomness associated with the given variable and
+        constraint pair. Returns a ``scipy.stats`` distribution (possibly
+        discrete).
+        """
+        logger.debug(f"Retrieving randomness for ({var}, {constr}).")
+
+        if self.is_finite():
+            return rv_discrete(values=zip(*self._discrete[var, constr]))
+        else:
+            return self._randomness[var, constr]
+
     def is_finite(self) -> bool:
         """
-        Tests if this INDEP section has finite support, or models continuous
-        distributions instead.
+        Tests if this INDEP section has finite support, or instead stores
+        continuous distributions.
         """
         return self._distribution == "DISCRETE"
 
@@ -88,7 +102,12 @@ class Indep:
         obs = data_line.first_number()
         prob = data_line.second_number()
 
-        self._discrete[constr, var].append((obs, prob))
+        if (var, constr) not in self._discrete:
+            # Does not use a defaultdict to make sure get_for() always raises
+            # a KeyError when (var, constr) is not known.
+            self._discrete[var, constr] = []
+
+        self._discrete[var, constr].append((obs, prob))
 
     def add_uniform(self, data_line: DataLine):
         a = data_line.first_number()
@@ -137,6 +156,6 @@ class Indep:
         var = data_line.first_name()
         constr = data_line.second_name()
 
-        self._randomness[constr, var] = distribution
+        self._randomness[var, constr] = distribution
 
     # TODO sampling/convert discrete indep to scenarios?
