@@ -118,7 +118,7 @@ def test_matrix_coefficients():
     parser = CoreParser("data/test/core_small_problem.cor")
     parser.parse()
 
-    matrix = parser.coefficients.todense()
+    matrix = parser.coefficients.toarray()
     expected = [[1.0, 3.8, 0, 0],
                 [2.5, 4.9, 0, 0],
                 [18, 1e3, 1.7, 14],

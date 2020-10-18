@@ -47,7 +47,8 @@ def test_warns_raises_missing_stochasticity_parameter():
 
 @pytest.mark.parametrize('file', ['stoch_unknown_modification_type',
                                   'stoch_unknown_distribution_type',
-                                  'stoch_blocks_unknown_transformation_type'])
+                                  # 'stoch_blocks_unknown_transformation_type'
+                                  ])
 def test_raises_unknown_header_keywords(file):
     """
     Tests if parsing various files raises a ValueError, due to strange header
