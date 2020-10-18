@@ -107,3 +107,5 @@ class StochParser(Parser):
         # TODO make Block/Node?
 
         return res
+
+    # TODO test is scenarios are finite or have continuous components

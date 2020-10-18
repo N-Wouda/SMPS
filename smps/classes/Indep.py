@@ -6,13 +6,10 @@ import numpy as np
 from scipy.stats import (beta, gamma, lognorm, norm,
                          uniform)
 
+from smps.constants import DISTRIBUTIONS, MODIFICATIONS
 from .DataLine import DataLine
 
 logger = logging.getLogger(__name__)
-
-# TODO these will also be needed for Blocks - move somewhere else.
-MODIFICATIONS = {"ADD", "MULTIPLY", "REPLACE"}
-DISTRIBUTIONS = {"DISCRETE", "UNIFORM", "NORMAL", "GAMMA", "BETA", "LOGNORM"}
 
 
 class Indep:
@@ -48,6 +45,24 @@ class Indep:
 
         self._randomness: Dict[Tuple[str, str], Any] = {}
         self._discrete = defaultdict(list)
+
+    @property
+    def distribution(self) -> str:
+        return self._distribution
+
+    @property
+    def modification(self) -> str:
+        return self._modification
+
+    def __len__(self) -> int:
+        return len(self._randomness) + len(self._discrete)
+
+    def is_finite(self) -> bool:
+        """
+        Tests if this INDEP section has finite support, or models continuous
+        distributions instead.
+        """
+        return self._distribution == "DISCRETE"
 
     def add_entry(self, data_line: DataLine):
         """
@@ -123,3 +138,5 @@ class Indep:
         constr = data_line.second_name()
 
         self._randomness[constr, var] = distribution
+
+    # TODO sampling/convert discrete indep to scenarios?
