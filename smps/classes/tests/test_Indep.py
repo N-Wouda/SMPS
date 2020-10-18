@@ -40,36 +40,8 @@ def test_is_finite(distr, expected):
     assert_equal(Indep(distr).is_finite(), expected)
 
 
-def test_add_distribution():
-    """
-    Tests if adding a distribution value to an Indep object works.
-
-    TODO test also content, not just length
-    TODO parametrize this test
-    """
-    # Discrete
-    line = "    COL1      ROW8      6.0            PERIOD2   0.5"
-    data_line = DataLine(line)
-
-    distr = Indep("DISCRETE")
-
-    assert_equal(len(distr), 0)
-    distr.add_entry(data_line)
-    assert_equal(len(distr), 1)
-
-    # Continuous
-    line = "    COL1      ROW8      0.0            PERIOD2   2.0"
-    data_line = DataLine(line)
-
-    distr = Indep("NORMAL")
-
-    assert_equal(len(distr), 0)
-    distr.add_entry(data_line)
-    assert_equal(len(distr), 1)
-
-
 def test_uniform():
-    pass
+    pass  # TODO
 
 
 def test_normal():
@@ -84,6 +56,8 @@ def test_normal():
     data_line = DataLine("    RHS       DEMAND1   7.0            PERIOD2   2")
     indep.add_entry(data_line)
 
+    assert_equal(len(indep), 1)
+
     distr = indep.get_for("RHS", "DEMAND1")
 
     assert_almost_equal(distr.mean(), 7)
@@ -94,15 +68,15 @@ def test_normal():
 
 
 def test_gamma():
-    pass
+    pass  # TODO
 
 
 def test_beta():
-    pass
+    pass  # TODO
 
 
 def test_lognorm():
-    pass
+    pass  # TODO
 
 
 def test_discrete():
@@ -121,6 +95,8 @@ def test_discrete():
     for line in lines:
         data_line = DataLine(line)
         indep.add_entry(data_line)
+
+    assert_equal(len(indep), 1)
 
     distr = indep.get_for("RHS", "DEMAND1")
 
