@@ -3,7 +3,7 @@ from collections import defaultdict
 from typing import Any, Dict, Tuple
 
 import numpy as np
-from scipy.stats import (beta, gamma, lognorm, multivariate_normal, norm,
+from scipy.stats import (beta, gamma, lognorm, norm,
                          uniform)
 
 from .DataLine import DataLine
@@ -12,8 +12,7 @@ logger = logging.getLogger(__name__)
 
 # TODO these will also be needed for Blocks - move somewhere else.
 MODIFICATIONS = {"ADD", "MULTIPLY", "REPLACE"}
-DISTRIBUTIONS = {"DISCRETE", "UNIFORM", "NORMAL", "GAMMA", "BETA",
-                 "LOGNORM", "MVNORMAL"}
+DISTRIBUTIONS = {"DISCRETE", "UNIFORM", "NORMAL", "GAMMA", "BETA", "LOGNORM"}
 
 
 class Indep:
@@ -25,11 +24,10 @@ class Indep:
     Arguments
     ---------
     distribution : str
-        Type of distribution this INDEP section models. One of {"DISCRETE",
-        "UNIFORM", "NORMAL", "GAMMA", "BETA", "LOGNORM", "MVNORMAL"}.
+        Type of distribution this INDEP section models. One of DISTRIBUTIONS.
     modification : str
-        Type of modification relative to the CORE file. One of {"ADD",
-        "MULTIPLY", "REPLACE"}. Default "REPLACE".
+        Type of modification relative to the CORE file. One of MODIFICATIONS.
+        Default "REPLACE".
     """
 
     def __init__(self, distribution: str, modification: str = "REPLACE"):
@@ -63,7 +61,6 @@ class Indep:
             "GAMMA": self.add_gamma,
             "BETA": self.add_beta,
             "LOGNORM": self.add_log_normal,
-            "MVNORMAL": self.add_mv_normal,
         }
 
         func = funcs[self._distribution]
@@ -82,6 +79,7 @@ class Indep:
         a = data_line.first_number()
         b = data_line.second_number()
 
+        # We get [a, b], but scipy expects [loc, loc + scale].
         distribution = uniform(loc=a, scale=b - a)
 
         self._add(data_line, distribution)
@@ -90,15 +88,16 @@ class Indep:
         mean = data_line.first_number()
         var = data_line.second_number()
 
+        # We get the variance, but scipy expects a standard deviation.
         distribution = norm(loc=mean, scale=np.sqrt(var))
 
         self._add(data_line, distribution)
 
     def add_gamma(self, data_line: DataLine):
-        a = data_line.first_number()
-        b = data_line.second_number()
+        scale = data_line.first_number()
+        shape = data_line.second_number()
 
-        distribution = gamma()  # TODO
+        distribution = gamma(shape, scale=scale)
 
         self._add(data_line, distribution)
 
@@ -106,23 +105,16 @@ class Indep:
         a = data_line.first_number()
         b = data_line.second_number()
 
-        distribution = beta()  # TODO
+        distribution = beta(a, b)
 
         self._add(data_line, distribution)
 
     def add_log_normal(self, data_line: DataLine):
-        a = data_line.first_number()
-        b = data_line.second_number()
+        mean = data_line.first_number()
+        var = data_line.second_number()
 
-        distribution = lognorm()  # TODO
-
-        self._add(data_line, distribution)
-
-    def add_mv_normal(self, data_line: DataLine):
-        a = data_line.first_number()
-        b = data_line.second_number()
-
-        distribution = multivariate_normal()  # TODO
+        # Same as for normal: scipy expects stddev, we get variance.
+        distribution = lognorm(loc=mean, scale=np.sqrt(var))
 
         self._add(data_line, distribution)
 
