@@ -26,6 +26,9 @@ class Indep:
     """
 
     def __init__(self, distribution: str, modification: str = "REPLACE"):
+        distribution = distribution.upper()
+        modification = modification.upper()
+
         logger.debug(f"Creating Indep({distribution}, {modification})")
 
         if modification not in MODIFICATIONS:
@@ -67,7 +70,8 @@ class Indep:
         logger.debug(f"Retrieving randomness for ({var}, {constr}).")
 
         if self.is_finite():
-            return rv_discrete(values=zip(*self._discrete[var, constr]))
+            return rv_discrete(values=zip(*self._discrete[var, constr]),
+                               name="discrete")
         else:
             return self._randomness[var, constr]
 
@@ -147,8 +151,12 @@ class Indep:
         mean = data_line.first_number()
         var = data_line.second_number()
 
-        # Same as for normal: scipy expects stddev, we get variance.
-        distribution = lognorm(loc=mean, scale=np.sqrt(var))
+        # From the scipy documentation: "A common parametrization for a
+        # lognormal random variable Y is in terms of the mean, mu, and standard
+        # deviation, sigma, of the unique normally distributed random variable
+        # X such that exp(X) = Y. This parametrization corresponds to setting
+        # s = sigma and scale = exp(mu)."
+        distribution = lognorm(scale=np.exp(mean), s=np.sqrt(var))
 
         self._add(data_line, distribution)
 
