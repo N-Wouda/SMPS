@@ -3,8 +3,8 @@ from numpy.testing import (assert_, assert_almost_equal, assert_equal)
 
 from smps.classes import DataLine
 
-# These are used to parametrise testing the text fields (i.e., name, first data
-# name, and second data name).
+# These are used to parametrise testing the text fields (i.e., the first,
+# second, and third name fields).
 _TEXT_TESTS = [("Test1234", "Test1234"),
                ("Test12345", "Test1234"),  # cut-off after 8 characters
                ("Test", "Test"),
@@ -56,7 +56,7 @@ def test_indicator_and_name():
     data_line = DataLine(" N  OBJ")  # from the LandS.cor file.
 
     assert_equal(data_line.indicator(), "N")
-    assert_equal(data_line.name(), "OBJ")
+    assert_equal(data_line.first_name(), "OBJ")
 
 
 @pytest.mark.parametrize("line,expected", [("* bogus stuff", True),
@@ -74,6 +74,7 @@ def test_is_comment(line, expected):
 @pytest.mark.parametrize("line,expected", [("ROWS", True),
                                            (" N  OBJ", False),
                                            ("* some text", False),
+                                           ("*", False),
                                            ("", False)])
 def test_is_header(line, expected):
     """
@@ -103,41 +104,29 @@ def test_first_data_entry():
     line = "    x_1       c2                 188"
     data_line = DataLine(line)
 
-    assert_equal(data_line.name(), "x_1")
-    assert_equal(data_line.first_data_name(), "c2")
+    assert_equal(data_line.first_name(), "x_1")
+    assert_equal(data_line.second_name(), "c2")
     assert_almost_equal(data_line.first_number(), 188)
 
 
-def test_has_no_second_data_entry():
-    """
-    Tests if the DataLine class correctly determines there is no second data
-    entry.
-    """
-    line = "    x_1       c2                 188"
-    data_line = DataLine(line)
-
-    assert_(not data_line.has_second_data_entry())
-
-
-def test_second_data_entry():
+@pytest.mark.parametrize("line,exp_name,exp_number",
+                         [("OBJ       10.0", True, True),
+                          ("          10.0", False, True),
+                          ("OBJ           ", True, False),
+                          ("OBJ", True, False),
+                          ("              ", False, False),
+                          ("", False, False)])
+def test_has_second_data_entry(line, exp_name, exp_number):
     """
     Tests if the DataLine class correctly tests if there is a second data entry,
     and parses the result. Also checks that this does not intervene with the
     first data entry.
     """
-    # From the sslp_5_25_50.cor file.
-    line = "    x_1       obj                 40   c1                  -1"
-    data_line = DataLine(line)
+    padding = " " * 39  # starts at column 40, so 5 spaces.
+    data_line = DataLine(padding + line)
 
-    # First data entry
-    assert_equal(data_line.name(), "x_1")
-    assert_equal(data_line.first_data_name(), "obj")
-    assert_almost_equal(data_line.first_number(), 40)
-
-    # Second data entry
-    assert_(data_line.has_second_data_entry())
-    assert_equal(data_line.second_data_name(), "c1")
-    assert_almost_equal(data_line.second_number(), -1)
+    assert_equal(data_line.has_third_name(), exp_name)
+    assert_equal(data_line.has_second_number(), exp_number)
 
 
 @pytest.mark.parametrize("line,expected", [("STOCH", "STOCH"),
@@ -167,47 +156,47 @@ def test_indicator_columns(line, expected):
 
 
 @pytest.mark.parametrize("line,expected", _TEXT_TESTS)
-def test_name_columns(line, expected):
+def test_first_name_columns(line, expected):
     """
-    The name field is the 5-12 column range (inclusive).
+    The first name field is the 5-12 column range (inclusive).
     """
     padding = " " * 4  # starts at column 5, so 4 spaces.
-
     data_line = DataLine(padding + line)
-    assert_equal(data_line.name(), expected)
+
+    assert_equal(data_line.first_name(), expected)
 
 
 @pytest.mark.parametrize("line,expected", _TEXT_TESTS)
-def test_first_data_name_columns(line, expected):
+def test_second_name_columns(line, expected):
     """
-    The first data name field is the 15-12 column range (inclusive).
+    The second name field is the 15-12 column range (inclusive).
     """
     padding = " " * 14  # starts at column 15, so 14 spaces.
-
     data_line = DataLine(padding + line)
-    assert_equal(data_line.first_data_name(), expected)
+
+    assert_equal(data_line.second_name(), expected)
 
 
 @pytest.mark.parametrize("line,expected", _NUMERIC_TESTS)
-def test_first_number_columns(line, expected):
+def test_first_number_column(line, expected):
     """
     The first numeric field is the 25-36 column range (inclusive).
     """
     padding = " " * 24  # starts at column 25, so 24 spaces.
-
     data_line = DataLine(padding + line)
+
     assert_almost_equal(data_line.first_number(), expected)
 
 
 @pytest.mark.parametrize("line,expected", _TEXT_TESTS)
-def test_second_data_name_columns(line, expected):
+def test_third_name_columns(line, expected):
     """
-    The second data name field is the 40-47 column range (inclusive).
+    The third name field is the 40-47 column range (inclusive).
     """
     padding = " " * 39  # starts at column 40, so 39 spaces.
-
     data_line = DataLine(padding + line)
-    assert_equal(data_line.second_data_name(), expected)
+
+    assert_equal(data_line.third_name(), expected)
 
 
 @pytest.mark.parametrize("line,expected", _NUMERIC_TESTS)
@@ -216,8 +205,8 @@ def test_second_number_columns(line, expected):
     The second numeric field is the 50-61 column range (inclusive).
     """
     padding = " " * 49  # starts at column 50, so 49 spaces.
-
     data_line = DataLine(padding + line)
+
     assert_almost_equal(data_line.second_number(), expected)
 
 

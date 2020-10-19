@@ -25,16 +25,6 @@ def test_raises_file_does_not_exist():
         StochParser("data/asdf3244325afds/assdew")
 
 
-def test_raises_non_discrete_scenarios():
-    """
-    If the parser detects a SCENARIOS header, those *must* be DISCRETE, and not
-    something else.
-    """
-    with assert_raises(ValueError):
-        parser = StochParser("data/test/stoch_non_discrete_scenarios")
-        parser.parse()
-
-
 def test_warns_missing_stoch_value():
     parser = StochParser("data/test/stoch_missing_stoch_section_value")
 
@@ -42,15 +32,32 @@ def test_warns_missing_stoch_value():
         parser.parse()
 
 
-def test_warns_missing_stochasticity_parameter():
+def test_warns_raises_missing_stochasticity_parameter():
     """
-    When an INDEP, BLOCKS, or SCENARIOS section is first encountered a second
-    header word is expected, which explains the type of stochasticity. When this
-    is missing, it defaults to DISCRETE and should issue a warning.
+    When an INDEP or BLOCKS section is first encountered a second header word is
+    expected, which explains the type of stochasticity. When this is missing, no
+    assumption can be made (for SCENARIOS, it's DISCRETE), and should raise an
+    error.
     """
     parser = StochParser('data/test/stoch_no_stochasticity_parameter')
 
-    with assert_warns(UserWarning):
+    with assert_raises(ValueError):
+        parser.parse()
+
+
+@pytest.mark.parametrize('file', ['stoch_unknown_modification_type',
+                                  'stoch_unknown_distribution_type',
+                                  # 'stoch_blocks_unknown_transformation_type'
+                                  ])
+def test_raises_unknown_header_keywords(file):
+    """
+    Tests if parsing various files raises a ValueError, due to strange header
+    specifications (e.g. unknown distribution for INDEP/BLOCKS, unknown type
+    of modification).
+    """
+    parser = StochParser("data/test/" + file)
+
+    with assert_raises(ValueError):
         parser.parse()
 
 
@@ -110,3 +117,4 @@ def test_parses_scenarios_small_instance():
     _compare_scenarios(parser.scenarios[1], second)
 
 # TODO
+# TODO test BLOCKS + LINTRAN/LINTR

@@ -1,0 +1,6 @@
+* For the INDEP section, this file defines the modification relative to the
+* core file to be "STRANGE", which is not understood. The implementation should
+* throw an error.
+STOCH         Test
+INDEP         DISCRETE                 STRANGE
+ENDATA

@@ -1,5 +1,7 @@
 import logging
 
+import numpy as np
+
 logger = logging.getLogger(__name__)
 
 
@@ -9,10 +11,10 @@ class DataLine:
     explained here: http://tiny.cc/lsyxsz. In particular, the following fields
     are identified:
         - Columns 2 and 3: indicator field,
-        - Columns 5-12: name field,
-        - Columns 15-22: first data name field,
+        - Columns 5-12: first name field,
+        - Columns 15-22: second name field,
         - Columns 25-36: first numeric field,
-        - Columns 40-47: second data name field,
+        - Columns 40-47: third data name field,
         - Columns 50-61: second numeric field.
 
     When a data line is a header, the following is available:
@@ -35,7 +37,7 @@ class DataLine:
     def __init__(self, data_line: str):
         data_line = data_line.rstrip()
 
-        logger.debug(f"Creating DataLine instance with '{data_line}'.")
+        logger.debug(f"Creating DataLine('{data_line}').")
         self._raw = data_line
 
     def indicator(self) -> str:
@@ -58,23 +60,24 @@ class DataLine:
         assert self.is_header()
         return self._raw[14:72].strip()
 
-    def name(self) -> str:
+    def first_name(self) -> str:
         return self._raw[4:12].strip()
 
-    def first_data_name(self) -> str:
+    def second_name(self) -> str:
         return self._raw[14:22].strip()
 
     def first_number(self) -> float:
         string = self._raw[24:36].strip()
         return float(string) if len(string) != 0 else float("nan")
 
-    def has_second_data_entry(self) -> bool:
-        # TODO is this sufficient to ensure both the name and number field
-        #  exist?
-        return len(self._raw) > 40
+    def has_third_name(self) -> bool:
+        return self.third_name() != ""
 
-    def second_data_name(self) -> str:
+    def third_name(self) -> str:
         return self._raw[39:47].strip()
+
+    def has_second_number(self) -> bool:
+        return not np.isnan(self.second_number())
 
     def second_number(self) -> float:
         string = self._raw[49:61].strip()

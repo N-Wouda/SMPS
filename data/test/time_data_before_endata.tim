@@ -1,6 +1,6 @@
 * This file contrasts the "time_file_data_beyond_endata.tim" file.
 TIME          Test
-PERIODS
+PERIODS       IMPLICIT
     COL1      ROW1                     PERIOD1
     COL6      ROW3                     PERIOD2
     COL8      ROW19                    PERIOD3

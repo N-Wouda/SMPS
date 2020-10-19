@@ -34,7 +34,7 @@ class Parser(ABC):
 
     def __init__(self, location: Union[str, Path]):
         typ = type(self).__name__
-        logger.debug(f"Creating {typ} instance with '{location}'.")
+        logger.debug(f"Creating {typ}('{location}').")
 
         # Insertion order is a CPython implementation detail in Py3.6, but from
         # Py3.7+ we can rely on insertion order as default behaviour.
@@ -125,8 +125,8 @@ class Parser(ABC):
         header = data_line.first_header_word()
 
         if header == self._state:
-            # This is very likely the first state, which has a name attribute
-            # that should be parsed.
+            # This is the initial state, which has a name attribute that should
+            # be parsed.
             return False
 
         if header in self._steps or header == "ENDATA":

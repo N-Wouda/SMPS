@@ -1,0 +1,6 @@
+* For the BLOCKS section, this file defines the data distribution or
+* transformation to be "STRANGE", which is not understood. The implementation
+* should throw an error.
+STOCH         Test
+BLOCKS        STRANGE
+ENDATA
