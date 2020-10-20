@@ -4,7 +4,7 @@ from abc import ABC
 from pathlib import Path
 from typing import Callable, Dict, Generator, List, Optional, Union
 
-from smps.classes import DataLine
+from smps.classes import DataLine, FixedDataLine, FreeDataLine
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,7 @@ class Parser(ABC):
         When the file pointed to by ``location`` does not exist, or no file
         exists there with appropriate file extension.
     """
+    _is_fixed: bool = True  # type of file parsed (free or fixed).
     _file_extensions: List[str] = []  # accepted file extensions.
 
     # Parsing functions for each header section. Since we cannot forward declare
@@ -93,6 +94,14 @@ class Parser(ABC):
             func = self._steps[self._state]
             func(self, data_line)
 
+    @classmethod
+    def set_fixed(cls):
+        cls._is_fixed = True
+
+    @classmethod
+    def set_free(cls):
+        cls._is_fixed = False
+
     def _read_file(self) -> Generator[DataLine, None, None]:
         """
         Reads the file, one line at a time (generator).
@@ -104,7 +113,10 @@ class Parser(ABC):
         """
         with open(str(self.file_location())) as fh:
             for line in fh:
-                yield DataLine(line)
+                if self._is_fixed:
+                    yield FixedDataLine(line)
+                else:
+                    yield FreeDataLine(line)
 
     def _transition(self, data_line: DataLine) -> bool:
         """

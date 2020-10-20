@@ -3,13 +3,14 @@ import warnings
 from pathlib import Path
 from typing import Union
 
-from smps.parsers import CoreParser, StochParser, TimeParser
+from smps.parsers import Parser, CoreParser, StochParser, TimeParser
 from .SmpsResult import SmpsResult
 
 logger = logging.getLogger(__name__)
 
 
-def read_smps(*locations: Union[str, Path]) -> SmpsResult:
+def read_smps(*locations: Union[str, Path],
+              is_fixed: bool = True) -> SmpsResult:
     """
     Parses a triplet of SMPS files.
 
@@ -23,6 +24,10 @@ def read_smps(*locations: Union[str, Path]) -> SmpsResult:
         locations are passed, it is assumed the first identifies the CORE file,
         the second the TIME file, and the third the STOCH file. Any remaining
         arguments are ignored.
+    is_fixed : bool, optional
+        Type of file parsed. The SMPS files are either fixed width (True), or
+        free form (False). Default True There are some nuances to this: see the
+        second reference below for details.
 
     Returns
     -------
@@ -64,6 +69,11 @@ def read_smps(*locations: Union[str, Path]) -> SmpsResult:
         msg = f"Received {len(locations)} locations, expected 1 or 3."
         logger.error(msg)
         raise ValueError(msg)
+
+    if is_fixed:
+        Parser.set_fixed()
+    else:
+        Parser.set_free()
 
     core = CoreParser(core_location)
     core.parse()

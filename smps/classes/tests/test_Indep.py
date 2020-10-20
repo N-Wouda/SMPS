@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal, assert_equal, assert_raises
 
-from smps.classes import DataLine, Indep
+from smps.classes import FixedDataLine, Indep
 from smps.constants import DISTRIBUTIONS, MODIFICATIONS
 
 
@@ -55,8 +55,8 @@ def test_uniform():
     indep = Indep("UNIFORM")
 
     # A uniform distribution: (VAR, CONSTR) ~ U[a = 0, b = 5].
-    data_line = DataLine("    VAR       CONSTR    0.0                      5.0")
-    indep.add_entry(data_line)
+    line = FixedDataLine("    VAR       CONSTR    0.0                      5.0")
+    indep.add_entry(line)
 
     assert_equal(len(indep), 1)
 
@@ -77,8 +77,8 @@ def test_normal():
 
     # Inspired by the the LandS stoch file. Normal distribution, as
     # (RHS, DEMAND1) ~ N(mu = 7, sigma^2 = 2)
-    data_line = DataLine("    RHS       DEMAND1   7.0            PERIOD2   2")
-    indep.add_entry(data_line)
+    line = FixedDataLine("    RHS       DEMAND1   7.0            PERIOD2   2")
+    indep.add_entry(line)
 
     assert_equal(len(indep), 1)
 
@@ -98,8 +98,8 @@ def test_gamma():
     indep = Indep("GAMMA")
 
     # A Gamma distribution: (VAR, CONSTR) ~ Gamma(shape = 2, scale = 5).
-    data_line = DataLine("    VAR       CONSTR    5.0                      2.0")
-    indep.add_entry(data_line)
+    line = FixedDataLine("    VAR       CONSTR    5.0                      2.0")
+    indep.add_entry(line)
 
     assert_equal(len(indep), 1)
 
@@ -119,8 +119,8 @@ def test_beta():
     indep = Indep("BETA")
 
     # A Beta distribution: (VAR, CONSTR) ~ Beta(a = 5, b = 3).
-    data_line = DataLine("    VAR       CONSTR    5.0                      3.0")
-    indep.add_entry(data_line)
+    line = FixedDataLine("    VAR       CONSTR    5.0                      3.0")
+    indep.add_entry(line)
 
     assert_equal(len(indep), 1)
 
@@ -142,8 +142,8 @@ def test_log_normal():
     indep = Indep("LOGNORM")
 
     # A log normal distribution: (VAR, CONSTR) ~ LogNorm(mu = 4, sigma^2 = 2).
-    data_line = DataLine("    VAR       CONSTR    4.0                      2.0")
-    indep.add_entry(data_line)
+    line = FixedDataLine("    VAR       CONSTR    4.0                      2.0")
+    indep.add_entry(line)
 
     assert_equal(len(indep), 1)
 
@@ -171,7 +171,7 @@ def test_discrete():
              "    RHS       DEMAND1   7.0            PERIOD2   0.3"]
 
     for line in lines:
-        data_line = DataLine(line)
+        data_line = FixedDataLine(line)
         indep.add_entry(data_line)
 
     assert_equal(len(indep), 1)
