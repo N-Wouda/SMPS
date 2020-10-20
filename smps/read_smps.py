@@ -3,8 +3,8 @@ import warnings
 from pathlib import Path
 from typing import Union
 
-from smps.SmpsResult import SmpsResult
 from smps.parsers import CoreParser, StochParser, TimeParser
+from .SmpsResult import SmpsResult
 
 logger = logging.getLogger(__name__)
 
