@@ -11,7 +11,6 @@ from .Parser import Parser
 
 logger = logging.getLogger(__name__)
 
-
 _BOUNDS_TYPES = {"LO", "UP", "FX", "FR", "MI", "PL", "BV", "LI", "UI"}
 _CONSTRAINT_SENSES = {'N', 'L', 'E', 'G'}
 
@@ -40,7 +39,7 @@ class MpsParser(Parser):
         self._objective_name = ""
 
         # Constraints.
-        self._constraint_names: List[str] = []
+        self._constr_names: List[str] = []
         self._senses: List[str] = []
         self._rhs: np.array = []
 
@@ -63,7 +62,7 @@ class MpsParser(Parser):
          list excludes the name of the objective, which can be queried as
         ``objective_name``.
         """
-        return self._constraint_names
+        return self._constr_names
 
     @property
     def senses(self) -> List[str]:
@@ -161,31 +160,33 @@ class MpsParser(Parser):
         return self._ub
 
     def _process_name(self, data_line: DataLine):
-        self._name = data_line.second_header_word()
-
-        if not data_line.second_header_word():
+        if not data_line.has_second_header_word():
             msg = "MPS file has no value for the NAME field."
             warnings.warn(msg)
             logger.warning(msg)
+        else:
+            self._name = data_line.second_header_word()
 
     def _process_rows(self, data_line: DataLine):
-        assert data_line.indicator() in _CONSTRAINT_SENSES
+        indicator = data_line.indicator()
+        name = data_line.first_name()
+
+        assert indicator in _CONSTRAINT_SENSES
 
         # This is a "no restriction" row, which indicates an objective function.
         # There can be more than one such row, but there can only be one
         # objective. We take the first such row as the objective, and then
         # ignore any subsequent "no restriction" rows.
-        if data_line.indicator() == 'N':
+        if indicator == 'N':
             if self.objective_name == "":
-                logger.debug(f"Setting {data_line.first_name()} as objective.")
-                self._objective_name = data_line.first_name()
+                logger.debug(f"Setting {name} as objective.")
+                self._objective_name = name
 
             return
         else:
-            self._constraint_names.append(data_line.first_name())
-            self._senses.append(data_line.indicator())
-
-            self._constr2idx[data_line.first_name()] = len(self._constraint_names) - 1
+            self._constr_names.append(name)
+            self._senses.append(indicator)
+            self._constr2idx[name] = len(self._constr_names) - 1
 
     def _process_columns(self, data_line: DataLine):
         name = data_line.second_name()

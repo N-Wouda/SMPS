@@ -12,10 +12,6 @@ class DataLine(ABC):
         logger.debug(f"Creating DataLine('{data_line}').")
         self._raw = data_line
 
-    @abstractmethod
-    def indicator(self) -> str:
-        raise NotImplementedError
-
     def is_comment(self) -> bool:
         return len(self._raw) == 0 or self._raw.lstrip().startswith("*")
 
@@ -30,7 +26,15 @@ class DataLine(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def has_second_header_word(self) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
     def second_header_word(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def indicator(self) -> str:
         raise NotImplementedError
 
     @abstractmethod

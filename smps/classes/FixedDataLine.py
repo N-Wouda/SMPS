@@ -36,16 +36,19 @@ class FixedDataLine(DataLine):
       http://pure.iiasa.ac.at/id/eprint/2934/1/WP-87-118.pdf.
     """
 
-    def indicator(self) -> str:
-        return self._raw[1:3].strip()
-
     def first_header_word(self):
         assert self.is_header()
         return self._raw[0:14].strip()
 
+    def has_second_header_word(self) -> bool:
+        return self.second_header_word() != ""
+
     def second_header_word(self):
         assert self.is_header()
         return self._raw[14:72].strip()
+
+    def indicator(self) -> str:
+        return self._raw[1:3].strip()
 
     def first_name(self) -> str:
         return self._raw[4:12].strip()
