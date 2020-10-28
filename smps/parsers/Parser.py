@@ -4,7 +4,7 @@ from abc import ABC
 from pathlib import Path
 from typing import Callable, Dict, Generator, List, Optional, Union
 
-from smps.classes import DataLine, FixedDataLine, FreeDataLine
+from smps.classes import DataLine, FixedDataLine, FreeDataLine, ParseContext
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,10 @@ class Parser(ABC):
     # Parsing functions for each header section. Since we cannot forward declare
     # these nicely, this dict is a bit ugly in the implementing classes.
     _steps: Dict[str, Callable[["Parser", DataLine], None]]
+
+    # Parsing contexts, for each header section. These determine how a data line
+    # should be understood.
+    _contexts: Dict[str, ParseContext]
 
     def __init__(self, location: Union[str, Path]):
         typ = type(self).__name__
@@ -116,7 +120,10 @@ class Parser(ABC):
                 if self._is_fixed:
                     yield FixedDataLine(line)
                 else:
-                    yield FreeDataLine(line)
+                    # Free-format data lines need context to determine their
+                    # contents. This context is provided by the current state's
+                    # ParseContext object.
+                    yield FreeDataLine(line, self._contexts[self._state])
 
     def _transition(self, data_line: DataLine) -> bool:
         """
