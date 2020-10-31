@@ -1,10 +1,38 @@
 import logging
-from abc import ABC, abstractmethod
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
-class DataLine(ABC):
+class DataLine:
+    """
+    Parses a single data line in the (S)MPS input, based on the column positions
+    explained here: http://tiny.cc/lsyxsz. In particular, the following fields
+    are identified:
+        - Columns 2 and 3: indicator field,
+        - Columns 5-12: first name field,
+        - Columns 15-22: second name field,
+        - Columns 25-36: first numeric field,
+        - Columns 40-47: third data name field,
+        - Columns 50-61: second numeric field.
+
+    When a data line is a header, the following is available:
+        - Columns 1-14: first word field,
+        - Columns 15-72: second word field.
+
+    Arguments
+    ---------
+    data_line : str
+        Raw data line string, to be parsed.
+
+    References
+    ----------
+    - Birge, J.R., Dempster, M.A.H., Gassmann, H.I., Gunn, E., King, A.J.,
+      and Wallace, S.W. 1987. A Standard Input Format for Multiperiod Stochastic
+      Linear Programs. `WP-87-118`.
+      http://pure.iiasa.ac.at/id/eprint/2934/1/WP-87-118.pdf.
+    """
 
     def __init__(self, data_line: str):
         data_line = data_line.rstrip()
@@ -21,49 +49,40 @@ class DataLine(ABC):
         """
         return len(self._raw) >= 1 and self._raw[0] not in " *"
 
-    @abstractmethod
     def first_header_word(self):
-        raise NotImplementedError
+        return self._raw[0:14].strip()
 
-    @abstractmethod
     def has_second_header_word(self) -> bool:
-        raise NotImplementedError
+        return self.second_header_word() != ""
 
-    @abstractmethod
     def second_header_word(self):
-        raise NotImplementedError
+        return self._raw[14:72].strip()
 
-    @abstractmethod
     def indicator(self) -> str:
-        raise NotImplementedError
+        return self._raw[1:3].strip()
 
-    @abstractmethod
     def first_name(self) -> str:
-        raise NotImplementedError
+        return self._raw[4:12].strip()
 
-    @abstractmethod
     def second_name(self) -> str:
-        raise NotImplementedError
+        return self._raw[14:22].strip()
 
-    @abstractmethod
     def first_number(self) -> float:
-        raise NotImplementedError
+        string = self._raw[24:36].strip()
+        return float(string) if len(string) != 0 else float("nan")
 
-    @abstractmethod
     def has_third_name(self) -> bool:
-        raise NotImplementedError
+        return self.third_name() != ""
 
-    @abstractmethod
     def third_name(self) -> str:
-        raise NotImplementedError
+        return self._raw[39:47].strip()
 
-    @abstractmethod
     def has_second_number(self) -> bool:
-        raise NotImplementedError
+        return not np.isnan(self.second_number())
 
-    @abstractmethod
     def second_number(self) -> float:
-        raise NotImplementedError
+        string = self._raw[49:61].strip()
+        return float(string) if len(string) != 0 else float("nan")
 
     def raw(self) -> str:
         return self._raw

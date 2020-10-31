@@ -60,7 +60,7 @@ class StochParser(Parser):
         constr = data_line.second_name()
         value = data_line.first_number()
 
-        assert self._current_scen is not None  # just to be sure
+        assert self._current_scen is not None
         self._current_scen.add_modification(constr, var, value)
 
         if data_line.has_third_name() and data_line.has_second_number():

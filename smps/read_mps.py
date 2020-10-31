@@ -2,13 +2,13 @@ import logging
 from pathlib import Path
 from typing import Union
 
-from smps.parsers import MpsParser, Parser
+from smps.parsers import MpsParser
 from .MpsResult import MpsResult
 
 logger = logging.getLogger(__name__)
 
 
-def read_mps(location: Union[str, Path], is_fixed: bool = True) -> MpsResult:
+def read_mps(location: Union[str, Path]) -> MpsResult:
     """
     Parses an MPS file.
 
@@ -16,10 +16,6 @@ def read_mps(location: Union[str, Path], is_fixed: bool = True) -> MpsResult:
     ----------
     location : Union[str, Path]
         File-system location(s) of the MPS file to parse.
-    is_fixed : bool, optional
-        Type of file parsed. The SMPS files are either fixed width (True), or
-        free form (False). Default True There are some nuances to this: see the
-        first reference below for details.
 
     Returns
     -------
@@ -40,11 +36,6 @@ def read_mps(location: Union[str, Path], is_fixed: bool = True) -> MpsResult:
       we use Gassmann's extensive notes here: http://tiny.cc/b87ysz.
     """
     logger.debug(f"Parsing MPS file at {location}")
-
-    if is_fixed:
-        Parser.set_fixed()
-    else:
-        Parser.set_free()
 
     mps = MpsParser(location)
     mps.parse()
