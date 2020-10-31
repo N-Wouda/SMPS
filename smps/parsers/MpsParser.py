@@ -16,15 +16,6 @@ _CONSTRAINT_SENSES = {'N', 'L', 'E', 'G'}
 
 
 class MpsParser(Parser):
-    _file_extensions = [".mps", ".MPS"]
-    _steps = {
-        "NAME": lambda self, data_line: self._process_name(data_line),
-        "ROWS": lambda self, data_line: self._process_rows(data_line),
-        "COLUMNS": lambda self, data_line: self._process_columns(data_line),
-        "RHS": lambda self, data_line: self._process_rhs(data_line),
-        "BOUNDS": lambda self, data_line: self._process_bounds(data_line),
-        "RANGES": lambda self, data_line: self._process_ranges(data_line),
-    }
 
     def __init__(self, location):
         super().__init__(location)
@@ -53,6 +44,21 @@ class MpsParser(Parser):
         self._constr2idx: Dict[str, int] = {}
         self._var2idx: Dict[str, int] = {}
         self._parse_ints = False  # flag for parsing integers
+
+    @property
+    def _file_extensions(self):
+        return [".mps", ".MPS"]
+
+    @property
+    def _steps(self):
+        return {
+            "NAME": self._process_name,
+            "ROWS": self._process_rows,
+            "COLUMNS": self._process_columns,
+            "RHS": self._process_rhs,
+            "BOUNDS": self._process_bounds,
+            "RANGES": self._process_ranges,
+        }
 
     @property
     def constraint_names(self) -> List[str]:

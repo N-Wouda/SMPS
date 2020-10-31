@@ -9,15 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class StochParser(Parser):
-    _file_extensions = [".sto", ".STO", ".stoch", ".STOCH"]
-    _steps = {
-        "STOCH": lambda self, data_line: self._process_stoch(data_line),
-        "INDEP": lambda self, data_line: self._process_indep(data_line),
-        "BLOCKS": lambda self, data_line: self._process_blocks(data_line),
-        "SCENARIOS": lambda self, data_line: self._process_scenarios(data_line),
-        "NODES": lambda self, data_line: self._process_nodes(data_line),
-        "DISTRIB": lambda self, data_line: self._process_distrib(data_line),
-    }
 
     def __init__(self, location):
         super().__init__(location)
@@ -25,6 +16,21 @@ class StochParser(Parser):
         self._current_scen: Optional[Scenario] = None
         self._indep_sections: List[Indep] = []
         # TODO
+
+    @property
+    def _file_extensions(self):
+        return [".sto", ".STO", ".stoch", ".STOCH"]
+
+    @property
+    def _steps(self):
+        return {
+            "STOCH": self._process_stoch,
+            "INDEP": self._process_indep,
+            "BLOCKS": self._process_blocks,
+            "SCENARIOS": self._process_scenarios,
+            "NODES": self._process_nodes,
+            "DISTRIB": self._process_distrib,
+        }
 
     @property
     def scenarios(self) -> List[Scenario]:
