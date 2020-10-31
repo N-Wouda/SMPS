@@ -338,10 +338,10 @@ class MpsParser(Parser):
             #
             #   row type       sign of r       h          u
             #   ----------------------------------------------
-            #     G            + or -         b        b + |r|
-            #     L            + or -       b - |r|      b
-            #     E              +            b        b + |r|
-            #     E              -          b - |r|      b
+            #      G            + or -         b        b + |r|
+            #      L            + or -       b - |r|      b
+            #      E              +            b        b + |r|
+            #      E              -          b - |r|      b
             #
             # (after http://lpsolve.sourceforge.net/5.5/mps-format.htm)
             if sense == 'E':
@@ -355,7 +355,7 @@ class MpsParser(Parser):
             if sense == 'G':
                 self._ranges[constr] = ('L', self.rhs + abs(value))
 
-            if sense == 'E':
+            if sense == 'L':
                 self._ranges[constr] = ('G', self.rhs[idx] - abs(value))
         else:
             # A range must be associated with an actual constraint. Here the
