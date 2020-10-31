@@ -51,9 +51,7 @@ class Parser(ABC):
     @abstractmethod
     def _file_extensions(self) -> List[str]:
         """
-        Accepted file extensions. These are used when the parser is constructed
-        with a file location argument that does not exist (e.g., because you're
-        passing in an SMPS triplet).
+        Accepted file extensions.
         """
         raise NotImplementedError
 
@@ -61,8 +59,7 @@ class Parser(ABC):
     @abstractmethod
     def _steps(self) -> Dict[str, Callable[[DataLine], None]]:
         """
-        Parsing functions for each header section. This is mostly for internal
-        use.
+        Parsing functions for each header section.
         """
         raise NotImplementedError
 
