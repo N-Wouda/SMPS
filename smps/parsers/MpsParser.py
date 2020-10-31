@@ -175,10 +175,6 @@ class MpsParser(Parser):
 
         return self._ub
 
-    def _finalise(self):
-        # TODO parse ranges into coefficients and senses/rhs
-        pass
-
     def _process_name(self, data_line: DataLine):
         if not data_line.has_second_header_word():
             msg = "MPS file has no value for the NAME field."
@@ -329,7 +325,38 @@ class MpsParser(Parser):
     def _add_range(self, constr: str, value: float):
         if constr in self._constr2idx:
             idx = self._constr2idx[constr]
-            self._ranges[constr] = (self.senses[idx], value)
+            sense = self.senses[idx]
+
+            # The RANGES section is for constraints of the form:
+            #    h <= constraint <= u.
+            #
+            # The range of the constraint is  r = u - h .  The value of r is
+            # specified in the RANGES section, and the value of u or h is
+            # specified in the RHS section. If b is the value entered in the RHS
+            # section, and r is the  value entered in the RANGES section, then u
+            # and h are thus defined:
+            #
+            #   row type       sign of r       h          u
+            #   ----------------------------------------------
+            #     G            + or -         b        b + |r|
+            #     L            + or -       b - |r|      b
+            #     E              +            b        b + |r|
+            #     E              -          b - |r|      b
+            #
+            # (after http://lpsolve.sourceforge.net/5.5/mps-format.htm)
+            if sense == 'E':
+                if value < 0:
+                    self.senses[idx] = 'L'
+                    self._ranges[constr] = ('G', self.rhs[idx] + value)
+                else:
+                    self.senses[idx] = 'G'
+                    self._ranges[constr] = ('L', self.rhs[idx] + value)
+
+            if sense == 'G':
+                self._ranges[constr] = ('L', self.rhs + abs(value))
+
+            if sense == 'E':
+                self._ranges[constr] = ('G', self.rhs[idx] - abs(value))
         else:
             # A range must be associated with an actual constraint. Here the
             # constraint does not exist, so there is likely an issue with the
