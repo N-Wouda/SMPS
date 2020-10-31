@@ -65,7 +65,7 @@ def test_indicator_and_name():
                                            ("", True)])
 def test_is_comment(line, expected):
     """
-    Tests if the FixedDataLine class correctly detects comment lines.
+    Tests if the DataLine class correctly detects comment lines.
     """
     data_line = DataLine(line)
     assert_equal(data_line.is_comment(), expected)
@@ -78,7 +78,7 @@ def test_is_comment(line, expected):
                                            ("", False)])
 def test_is_header(line, expected):
     """
-    Tests if the FixedDataLine class correctly detects section headers.
+    Tests if the DataLine class correctly detects section headers.
     """
     data_line = DataLine(line)
     assert_equal(data_line.is_header(), expected)
@@ -86,20 +86,19 @@ def test_is_header(line, expected):
 
 def test_header():
     """
-    Tests if the FixedDataLine class correctly parses section headers.
+    Tests if the DataLine class correctly parses section headers.
     """
     header_line = DataLine("ROWS")  # empty section header.
     assert_equal(header_line.first_header_word(), "ROWS")
 
-    header_line = DataLine(
-        "INDEP         DISCRETE")  # parameterised header.
+    header_line = DataLine("INDEP         DISCRETE")  # parameterised header.
     assert_equal(header_line.first_header_word(), "INDEP")
     assert_equal(header_line.second_header_word(), "DISCRETE")
 
 
 def test_first_data_entry():
     """
-    Tests if the FixedDataLine class correctly parses the first data entry.
+    Tests if the DataLine class correctly parses the first data entry.
     """
     # From the sslp_5_25_50.cor file.
     line = "    x_1       c2                 188"
@@ -119,7 +118,7 @@ def test_first_data_entry():
                           ("", False, False)])
 def test_has_second_data_entry(line, exp_name, exp_number):
     """
-    Tests if the FixedDataLine class correctly tests if there is a second data
+    Tests if the DataLine class correctly tests if there is a second data
     entry, and parses the result. Also checks that this does not intervene with
     the first data entry.
     """
