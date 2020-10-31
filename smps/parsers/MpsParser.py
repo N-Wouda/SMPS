@@ -20,8 +20,8 @@ class MpsParser(Parser):
     def __init__(self, location):
         super().__init__(location)
 
-        # This list will contain all elements of the constrain matrix, as a list
-        # of (constraint, variable, value)-tuples.
+        # This list will contain all elements of the constraint matrix, as a
+        # list of (constraint, variable, value)-tuples.
         self._elements: List[Tuple[str, str, float]] = []
 
         # This list contains all objective coefficients, as a list of
@@ -33,6 +33,7 @@ class MpsParser(Parser):
         self._constr_names: List[str] = []
         self._senses: List[str] = []
         self._rhs: np.array = []
+        self._ranges: Dict[str, Tuple[str, float]] = {}  # name -> (sense, rhs)
 
         # Variables.
         self._variable_names: List[str] = []
@@ -87,6 +88,9 @@ class MpsParser(Parser):
         If this was not specified otherwise in the data file, the constraint
         right-hand side defaults to zero.
         """
+        if len(self._rhs) != len(self.constraint_names):
+            self._rhs = np.zeros(len(self.constraint_names))
+
         return self._rhs
 
     @property
@@ -154,6 +158,9 @@ class MpsParser(Parser):
         was not specified otherwise in the data file, the lower bound defaults
         to zero.
         """
+        if len(self._lb) != len(self.variable_names):
+            self._lb = np.zeros(len(self.variable_names))
+
         return self._lb
 
     @property
@@ -163,7 +170,14 @@ class MpsParser(Parser):
         was not specified otherwise in the data file, the upper bound defaults
         to +infinity.
         """
+        if len(self._ub) != len(self.variable_names):
+            self._ub = np.full(len(self.variable_names), np.inf)
+
         return self._ub
+
+    def _finalise(self):
+        # TODO parse ranges into coefficients and senses/rhs
+        pass
 
     def _process_name(self, data_line: DataLine):
         if not data_line.has_second_header_word():
@@ -203,14 +217,10 @@ class MpsParser(Parser):
             self._parse_column(data_line)
 
     def _process_rhs(self, data_line: DataLine):
-        if len(self._rhs) != len(self.constraint_names):
-            self._rhs = np.zeros(len(self.constraint_names))
-
         self._add_rhs(data_line.second_name(), data_line.first_number())
 
         if data_line.has_third_name() and data_line.has_second_number():
-            self._add_rhs(data_line.third_name(),
-                          data_line.second_number())
+            self._add_rhs(data_line.third_name(), data_line.second_number())
 
     def _process_bounds(self, data_line: DataLine):
         """
@@ -233,10 +243,6 @@ class MpsParser(Parser):
         ValueError
             When the bound type is not understood.
         """
-        if len(self._lb) != len(self.variable_names) != len(self._ub):
-            self._lb = np.zeros(len(self.variable_names))
-            self._ub = np.full(len(self.variable_names), np.inf)
-
         bound_type = data_line.indicator()
 
         if bound_type not in _BOUNDS_TYPES:
@@ -251,50 +257,51 @@ class MpsParser(Parser):
         # Hence we treat these separately, and then return.
         if bound_type in {"FR", "MI", "PL", "BV"}:
             if bound_type == "FR":  # free variable
-                self._lb[idx] = -np.inf
-                self._ub[idx] = np.inf
+                self.lower_bounds[idx] = -np.inf
+                self.upper_bounds[idx] = np.inf
 
             if bound_type == "MI":  # -inf lower bound
-                self._lb[idx] = -np.inf
+                self.lower_bounds[idx] = -np.inf
 
             if bound_type == "PL":  # +inf upper bound
-                self._ub[idx] = np.inf
+                self.upper_bounds[idx] = np.inf
 
             if bound_type == "BV":  # binary variable
-                self._lb[idx] = 0
-                self._ub[idx] = 1
-                self._types[idx] = 'B'
+                self.lower_bounds[idx] = 0
+                self.upper_bounds[idx] = 1
+                self.types[idx] = 'B'
 
             return
 
         value = data_line.first_number()
 
         if bound_type == "LO":  # lower bound
-            self._lb[idx] = value
+            self.lower_bounds[idx] = value
 
         if bound_type == "UP":  # upper bound
-            self._ub[idx] = value
+            self.upper_bounds[idx] = value
 
         if bound_type == "FX":  # fixed variable
-            self._lb[idx] = value
-            self._ub[idx] = value
+            self.lower_bounds[idx] = value
+            self.upper_bounds[idx] = value
 
         if bound_type == "LI":  # integer variable, lower bound
-            self._lb[idx] = value
-            self._types[idx] = 'I'
+            self.lower_bounds[idx] = value
+            self.types[idx] = 'I'
 
         if bound_type == "UI":  # integer variable, upper bound
-            self._ub[idx] = value
-            self._types[idx] = 'I'
+            self.upper_bounds[idx] = value
+            self.types[idx] = 'I'
 
     def _process_ranges(self, data_line: DataLine):
-        if len(self._lb) != len(self.variable_names) != len(self._ub):
-            self._lb = np.zeros(len(self.variable_names))
-            self._ub = np.full(len(self.variable_names), np.inf)
+        """
+        This is mostly based on the CPLEX manual, and some searching around. See
+        also https://github.com/N-Wouda/SMPS/issues/5.
+        """
+        self._add_range(data_line.second_name(), data_line.first_number())
 
-        # This is mostly based on the CPLEX manual, and some searching around.
-        # See also https://github.com/N-Wouda/SMPS/issues/5.
-        pass
+        if data_line.has_third_name() and data_line.has_second_number():
+            self._add_range(data_line.third_name(), data_line.second_number())
 
     def _add_value(self, constr: str, var: str, value: float):
         if constr == self.objective_name:
@@ -310,12 +317,24 @@ class MpsParser(Parser):
     def _add_rhs(self, constr: str, value: float):
         if constr in self._constr2idx:
             idx = self._constr2idx[constr]
-            self._rhs[idx] = value
+            self.rhs[idx] = value
         else:
             # A right-hand side must be associated with an actual constraint, so
             # this cannot have been a "no restriction" row. It is likely an
             # issue in the MPS file.
             msg = f"Cannot add RHS for unknown constraint {constr}; skipping."
+            logger.warning(msg)
+            warnings.warn(msg)
+
+    def _add_range(self, constr: str, value: float):
+        if constr in self._constr2idx:
+            idx = self._constr2idx[constr]
+            self._ranges[constr] = (self.senses[idx], value)
+        else:
+            # A range must be associated with an actual constraint. Here the
+            # constraint does not exist, so there is likely an issue with the
+            # file.
+            msg = f"Cannot add RANGE for unknown constraint {constr}; skipping."
             logger.warning(msg)
             warnings.warn(msg)
 

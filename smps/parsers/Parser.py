@@ -101,6 +101,17 @@ class Parser(ABC):
 
             self._steps[self._state](data_line)
 
+        self._finalise()
+
+    def _finalise(self):
+        """
+        Called once parsing is complete. This is a useful place to re-organise
+        some data, before the parser is queried.
+
+        Default implementation is no-op.
+        """
+        pass
+
     def _read_file(self) -> Generator[DataLine, None, None]:
         """
         Reads the file, one line at a time (generator).
