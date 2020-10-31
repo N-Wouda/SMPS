@@ -286,7 +286,9 @@ class MpsParser(Parser):
             self._lb = np.zeros(len(self.variable_names))
             self._ub = np.full(len(self.variable_names), np.inf)
 
-        # TODO see https://github.com/N-Wouda/SMPS/issues/5
+        # This is mostly based on the CPLEX manual, and some searching around.
+        # See also https://github.com/N-Wouda/SMPS/issues/5.
+        pass
 
     def _add_value(self, constr: str, var: str, value: float):
         if constr == self.objective_name:
