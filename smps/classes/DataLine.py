@@ -40,9 +40,6 @@ class DataLine:
         logger.debug(f"Creating DataLine('{data_line}').")
         self._raw = data_line
 
-    def indicator(self) -> str:
-        return self._raw[1:3].strip()
-
     def is_comment(self) -> bool:
         return len(self._raw) == 0 or self._raw.lstrip().startswith("*")
 
@@ -53,12 +50,16 @@ class DataLine:
         return len(self._raw) >= 1 and self._raw[0] not in " *"
 
     def first_header_word(self):
-        assert self.is_header()
         return self._raw[0:14].strip()
 
+    def has_second_header_word(self) -> bool:
+        return self.second_header_word() != ""
+
     def second_header_word(self):
-        assert self.is_header()
         return self._raw[14:72].strip()
+
+    def indicator(self) -> str:
+        return self._raw[1:3].strip()
 
     def first_name(self) -> str:
         return self._raw[4:12].strip()

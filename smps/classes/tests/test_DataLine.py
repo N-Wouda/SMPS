@@ -118,9 +118,9 @@ def test_first_data_entry():
                           ("", False, False)])
 def test_has_second_data_entry(line, exp_name, exp_number):
     """
-    Tests if the DataLine class correctly tests if there is a second data entry,
-    and parses the result. Also checks that this does not intervene with the
-    first data entry.
+    Tests if the DataLine class correctly tests if there is a second data
+    entry, and parses the result. Also checks that this does not intervene with
+    the first data entry.
     """
     padding = " " * 39  # starts at column 40, so 5 spaces.
     data_line = DataLine(padding + line)

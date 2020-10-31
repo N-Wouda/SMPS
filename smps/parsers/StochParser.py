@@ -31,12 +31,12 @@ class StochParser(Parser):
         return Scenario.scenarios()
 
     def _process_stoch(self, data_line: DataLine):
-        self._name = data_line.second_header_word()
-
-        if not data_line.second_header_word():
+        if not data_line.has_second_header_word():
             msg = "Stoch file has no value for the STOCH field."
             warnings.warn(msg)
             logger.warning(msg)
+        else:
+            self._name = data_line.second_header_word()
 
     def _process_indep(self, data_line: DataLine):
         assert len(self._indep_sections) >= 1
@@ -60,7 +60,7 @@ class StochParser(Parser):
         constr = data_line.second_name()
         value = data_line.first_number()
 
-        assert self._current_scen is not None  # just to be sure
+        assert self._current_scen is not None
         self._current_scen.add_modification(constr, var, value)
 
         if data_line.has_third_name() and data_line.has_second_number():

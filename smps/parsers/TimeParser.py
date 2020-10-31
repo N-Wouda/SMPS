@@ -82,12 +82,12 @@ class TimeParser(Parser):
         return self._param
 
     def _process_time(self, data_line: DataLine):
-        self._name = data_line.second_header_word()
-
-        if not data_line.second_header_word():
+        if not data_line.has_second_header_word():
             msg = "Time file has no value for the TIME field."
             warnings.warn(msg)
             logger.warning(msg)
+        else:
+            self._name = data_line.second_header_word()
 
     def _process_periods(self, data_line: DataLine):
         assert data_line.has_third_name()
@@ -117,7 +117,11 @@ class TimeParser(Parser):
 
     def _transition(self, data_line):
         res = super()._transition(data_line)
-        param = data_line.second_header_word().upper()
+
+        if data_line.has_second_header_word():
+            param = data_line.second_header_word().upper()
+        else:
+            param = ""  # not set
 
         # Default is implicit (see Gassmann on the PERIODS section). So  we need
         # to update in case the param in EXPLICIT, the only other option.
