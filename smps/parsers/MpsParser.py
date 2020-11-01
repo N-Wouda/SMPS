@@ -323,47 +323,45 @@ class MpsParser(Parser):
             warnings.warn(msg)
 
     def _add_range(self, constr: str, value: float):
-        if constr in self._constr2idx:
-            idx = self._constr2idx[constr]
-            sense = self.senses[idx]
-
-            # The RANGES section is for constraints of the form:
-            #    h <= constraint <= u.
-            #
-            # The range of the constraint is  r = u - h .  The value of r is
-            # specified in the RANGES section, and the value of u or h is
-            # specified in the RHS section. If b is the value entered in the RHS
-            # section, and r is the  value entered in the RANGES section, then u
-            # and h are thus defined:
-            #
-            #   row type       sign of r       h          u
-            #   ----------------------------------------------
-            #      G            + or -         b        b + |r|
-            #      L            + or -       b - |r|      b
-            #      E              +            b        b + |r|
-            #      E              -          b - |r|      b
-            #
-            # (after http://lpsolve.sourceforge.net/5.5/mps-format.htm)
-            if sense == 'E':
-                if value < 0:
-                    self.senses[idx] = 'L'
-                    self._ranges[constr] = ('G', self.rhs[idx] + value)
-                else:
-                    self.senses[idx] = 'G'
-                    self._ranges[constr] = ('L', self.rhs[idx] + value)
-
-            if sense == 'G':
-                self._ranges[constr] = ('L', self.rhs + abs(value))
-
-            if sense == 'L':
-                self._ranges[constr] = ('G', self.rhs[idx] - abs(value))
-        else:
+        if constr not in self._constr2idx:
             # A range must be associated with an actual constraint. Here the
             # constraint does not exist, so there is likely an issue with the
             # file.
             msg = f"Cannot add RANGE for unknown constraint {constr}; skipping."
             logger.warning(msg)
             warnings.warn(msg)
+            return
+
+        idx = self._constr2idx[constr]
+        sense = self.senses[idx]
+
+        # RANGES is for constraints of the form: h <= constraint <= u. The range
+        # of the constraint is r = u - h. The value of r is specified in the
+        # RANGES section, and the value of u or h is specified in the RHS
+        # section. If b is the value entered in the RHS section, and r is the
+        # value entered in the RANGES section, then u and h are thus defined:
+        #
+        #    sense         sign of r       h          u
+        #   ----------------------------------------------
+        #      G            + or -         b        b + |r|
+        #      L            + or -       b - |r|      b
+        #      E              +            b        b + |r|
+        #      E              -          b - |r|      b
+        #
+        # (after http://lpsolve.sourceforge.net/5.5/mps-format.htm)
+        if sense == 'E':
+            if value < 0:
+                self.senses[idx] = 'L'
+                self._ranges[constr] = ('G', self.rhs[idx] + value)
+            else:
+                self.senses[idx] = 'G'
+                self._ranges[constr] = ('L', self.rhs[idx] + value)
+
+        if sense == 'G':
+            self._ranges[constr] = ('L', self.rhs[idx] + abs(value))
+
+        if sense == 'L':
+            self._ranges[constr] = ('G', self.rhs[idx] - abs(value))
 
     def _parse_marker(self, data_line: DataLine):
         assert data_line.has_third_name()
