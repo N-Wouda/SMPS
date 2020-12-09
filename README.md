@@ -38,13 +38,6 @@ do not provide.
 
 TODO
 
-## Cite
-
-In case you have used this package in a published work, please consider citing it as
-
-> Wouda, N.A. 2020. A Python package for parsing stochastic programming problems
-> in the SMPS format. https://github.com/N-Wouda/SMPS.
-
 ## References
 
 TODO
