@@ -1,5 +1,6 @@
 import logging
 import warnings
+from collections import defaultdict
 from functools import lru_cache
 from typing import Dict, List, Tuple
 
@@ -16,21 +17,12 @@ _CONSTRAINT_SENSES = {'N', 'L', 'E', 'G'}
 
 
 class MpsParser(Parser):
-    _file_extensions = [".mps", ".MPS"]
-    _steps = {
-        "NAME": lambda self, data_line: self._process_name(data_line),
-        "ROWS": lambda self, data_line: self._process_rows(data_line),
-        "COLUMNS": lambda self, data_line: self._process_columns(data_line),
-        "RHS": lambda self, data_line: self._process_rhs(data_line),
-        "BOUNDS": lambda self, data_line: self._process_bounds(data_line),
-        "RANGES": lambda self, data_line: self._process_ranges(data_line),
-    }
 
     def __init__(self, location):
         super().__init__(location)
 
-        # This list will contain all elements of the constrain matrix, as a list
-        # of (constraint, variable, value)-tuples.
+        # This list will contain all elements of the constraint matrix, as a
+        # list of (constraint, variable, value)-tuples.
         self._elements: List[Tuple[str, str, float]] = []
 
         # This list contains all objective coefficients, as a list of
@@ -41,13 +33,14 @@ class MpsParser(Parser):
         # Constraints.
         self._constr_names: List[str] = []
         self._senses: List[str] = []
-        self._rhs: np.array = []
+        self._rhs: List[float] = []
+        self._ranges: Dict[str, Tuple[str, float]] = {}  # name -> (sense, rhs)
 
         # Variables.
         self._variable_names: List[str] = []
         self._types: List[str] = []
-        self._lb: np.array = []
-        self._ub: np.array = []
+        self._lb: List[float] = []
+        self._ub: List[float] = []
 
         # Look-ups and flags.
         self._constr2idx: Dict[str, int] = {}
@@ -55,16 +48,41 @@ class MpsParser(Parser):
         self._parse_ints = False  # flag for parsing integers
 
     @property
+    def _file_extensions(self):
+        return [".mps", ".MPS"]
+
+    @property
+    def _steps(self):
+        return {
+            "NAME": self._process_name,
+            "ROWS": self._process_rows,
+            "COLUMNS": self._process_columns,
+            "RHS": self._process_rhs,
+            "BOUNDS": self._process_bounds,
+            "RANGES": self._process_ranges,
+        }
+
+    @property
+    @lru_cache(1)
     def constraint_names(self) -> List[str]:
         """
         Returns the constraint names, as a list. The first name belongs to the
         first constraint, the second to the second constraint, and so on. This
          list excludes the name of the objective, which can be queried as
         ``objective_name``.
+
+        Names are not unique in case the RANGES data section was present in the
+        MPS file (the constraint name is re-used).
         """
-        return self._constr_names
+        names = self._constr_names.copy()
+
+        for constr in self._ranges:
+            names.append(constr)
+
+        return names
 
     @property
+    @lru_cache(1)
     def senses(self) -> List[str]:
         """
         Returns the constraint senses, as a list. The first sense belongs to the
@@ -72,16 +90,27 @@ class MpsParser(Parser):
         list contains values in {'E', 'L', 'G'}, indicating equality,
         less-than-equal, or greater-than-equal senses, respectively.
         """
-        return self._senses
+        senses = self._senses.copy()
+
+        for _, (sense, _) in self._ranges.items():
+            senses.append(sense)
+
+        return senses
 
     @property
+    @lru_cache(1)
     def rhs(self) -> np.array:
         """
         Constraint right-hand sides, as a vector with one entry per constraint.
         If this was not specified otherwise in the data file, the constraint
         right-hand side defaults to zero.
         """
-        return self._rhs
+        rhs = self._rhs.copy()
+
+        for _, (_, value) in self._ranges.items():
+            rhs.append(value)
+
+        return np.array(rhs)
 
     @property
     def objective_name(self) -> str:
@@ -101,10 +130,26 @@ class MpsParser(Parser):
         rows = []
         cols = []
 
+        range_data = defaultdict(list)
+
         for constr, var, val in self._elements:
             data.append(val)
             rows.append(self._constr2idx[constr])
             cols.append(self._var2idx[var])
+
+            if constr in self._ranges:
+                range_data[constr].append((cols[-1], data[-1]))
+
+        range_constr = 0
+
+        for constr, elems in range_data.items():
+            idx = len(self._constr2idx) + range_constr
+            range_constr += 1
+
+            for var, val in elems:
+                data.append(val)
+                rows.append(idx)
+                cols.append(var)
 
         shape = (len(self.constraint_names), len(self.variable_names))
         return coo_matrix((data, (rows, cols)), shape=shape)
@@ -148,7 +193,7 @@ class MpsParser(Parser):
         was not specified otherwise in the data file, the lower bound defaults
         to zero.
         """
-        return self._lb
+        return np.array(self._lb)
 
     @property
     def upper_bounds(self) -> np.array:
@@ -157,7 +202,7 @@ class MpsParser(Parser):
         was not specified otherwise in the data file, the upper bound defaults
         to +infinity.
         """
-        return self._ub
+        return np.array(self._ub)
 
     def _process_name(self, data_line: DataLine):
         if not data_line.has_second_header_word():
@@ -198,13 +243,12 @@ class MpsParser(Parser):
 
     def _process_rhs(self, data_line: DataLine):
         if len(self._rhs) != len(self.constraint_names):
-            self._rhs = np.zeros(len(self.constraint_names))
+            self._rhs = [0] * len(self.constraint_names)
 
         self._add_rhs(data_line.second_name(), data_line.first_number())
 
         if data_line.has_third_name() and data_line.has_second_number():
-            self._add_rhs(data_line.third_name(),
-                          data_line.second_number())
+            self._add_rhs(data_line.third_name(), data_line.second_number())
 
     def _process_bounds(self, data_line: DataLine):
         """
@@ -227,9 +271,11 @@ class MpsParser(Parser):
         ValueError
             When the bound type is not understood.
         """
-        if len(self._lb) != len(self.variable_names) != len(self._ub):
-            self._lb = np.zeros(len(self.variable_names))
-            self._ub = np.full(len(self.variable_names), np.inf)
+        if len(self._lb) != len(self.variable_names):
+            self._lb = [0.] * len(self.variable_names)
+
+        if len(self._ub) != len(self.variable_names):
+            self._ub = [np.inf] * len(self.variable_names)
 
         bound_type = data_line.indicator()
 
@@ -282,11 +328,20 @@ class MpsParser(Parser):
             self._types[idx] = 'I'
 
     def _process_ranges(self, data_line: DataLine):
-        if len(self._lb) != len(self.variable_names) != len(self._ub):
-            self._lb = np.zeros(len(self.variable_names))
-            self._ub = np.full(len(self.variable_names), np.inf)
+        """
+        This is mostly based on the CPLEX manual, and some searching around. See
+        also https://github.com/N-Wouda/SMPS/issues/5.
+        """
+        if len(self._lb) != len(self.variable_names):
+            self._lb = [0.] * len(self.variable_names)
 
-        # TODO see https://github.com/N-Wouda/SMPS/issues/5
+        if len(self._ub) != len(self.variable_names):
+            self._ub = [np.inf] * len(self.variable_names)
+
+        self._add_range(data_line.second_name(), data_line.first_number())
+
+        if data_line.has_third_name() and data_line.has_second_number():
+            self._add_range(data_line.third_name(), data_line.second_number())
 
     def _add_value(self, constr: str, var: str, value: float):
         if constr == self.objective_name:
@@ -310,6 +365,47 @@ class MpsParser(Parser):
             msg = f"Cannot add RHS for unknown constraint {constr}; skipping."
             logger.warning(msg)
             warnings.warn(msg)
+
+    def _add_range(self, constr: str, value: float):
+        if constr not in self._constr2idx:
+            # A range must be associated with an actual constraint. Here the
+            # constraint does not exist, so there is likely an issue with the
+            # file.
+            msg = f"Cannot add RANGE for unknown constraint {constr}; skipping."
+            logger.warning(msg)
+            warnings.warn(msg)
+            return
+
+        idx = self._constr2idx[constr]
+        sense = self._senses[idx]
+
+        # RANGES is for constraints of the form: h <= constraint <= u. The range
+        # of the constraint is r = u - h. The value of r is specified in the
+        # RANGES section, and the value of u or h is specified in the RHS
+        # section. If b is the value entered in the RHS section, and r is the
+        # value entered in the RANGES section, then u and h are thus defined:
+        #
+        #    sense         sign of r       h          u
+        #   ----------------------------------------------
+        #      G            + or -         b        b + |r|
+        #      L            + or -       b - |r|      b
+        #      E              +            b        b + |r|
+        #      E              -          b - |r|      b
+        #
+        # (after http://lpsolve.sourceforge.net/5.5/mps-format.htm)
+        if sense == 'E':
+            if value < 0:
+                self._senses[idx] = 'L'
+                self._ranges[constr] = ('G', self._rhs[idx] + value)
+            else:
+                self._senses[idx] = 'G'
+                self._ranges[constr] = ('L', self._rhs[idx] + value)
+
+        if sense == 'G':
+            self._ranges[constr] = ('L', self._rhs[idx] + abs(value))
+
+        if sense == 'L':
+            self._ranges[constr] = ('G', self._rhs[idx] - abs(value))
 
     def _parse_marker(self, data_line: DataLine):
         assert data_line.has_third_name()

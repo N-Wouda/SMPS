@@ -9,13 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class TimeParser(Parser):
-    _file_extensions = [".tim", ".TIM", ".time", ".TIME"]
-    _steps = {
-        "TIME": lambda self, data_line: self._process_time(data_line),
-        "PERIODS": lambda self, data_line: self._process_periods(data_line),
-        "ROWS": lambda self, data_line: self._process_rows(data_line),
-        "COLUMNS": lambda self, data_line: self._process_columns(data_line),
-    }
 
     def __init__(self, location):
         super().__init__(location)
@@ -29,6 +22,19 @@ class TimeParser(Parser):
         # For an EXPLICIT specification.
         self._explicit_constraints: List[Tuple[str, str]] = []
         self._explicit_variables: List[Tuple[str, str]] = []
+
+    @property
+    def _file_extensions(self):
+        return [".tim", ".TIM", ".time", ".TIME"]
+
+    @property
+    def _steps(self):
+        return {
+            "TIME": self._process_time,
+            "PERIODS": self._process_periods,
+            "ROWS": self._process_rows,
+            "COLUMNS": self._process_columns,
+        }
 
     @property
     def num_stages(self) -> int:

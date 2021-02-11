@@ -1,6 +1,6 @@
 import logging
 import warnings
-from abc import ABC
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Callable, Dict, Generator, List, Optional, Union
 
@@ -26,11 +26,6 @@ class Parser(ABC):
         When the file pointed to by ``location`` does not exist, or no file
         exists there with appropriate file extension.
     """
-    _file_extensions: List[str] = []  # accepted file extensions.
-
-    # Parsing functions for each header section. Since we cannot forward declare
-    # these nicely, this dict is a bit ugly in the implementing classes.
-    _steps: Dict[str, Callable[["Parser", DataLine], None]]
 
     def __init__(self, location: Union[str, Path]):
         typ = type(self).__name__
@@ -51,6 +46,22 @@ class Parser(ABC):
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    @abstractmethod
+    def _file_extensions(self) -> List[str]:
+        """
+        Accepted file extensions.
+        """
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def _steps(self) -> Dict[str, Callable[[DataLine], None]]:
+        """
+        Parsing functions for each header section.
+        """
+        raise NotImplementedError
 
     def file_location(self) -> Optional[Path]:
         """
@@ -85,13 +96,10 @@ class Parser(ABC):
             if any(skip_when):
                 continue
 
-            # This might never get hit as ENDATA is generally the last line of
-            # an SMPS file, so the ``continue`` above should end the parse.
             if self._state == "ENDATA":
                 break
 
-            func = self._steps[self._state]
-            func(self, data_line)
+            self._steps[self._state](data_line)
 
     def _read_file(self) -> Generator[DataLine, None, None]:
         """
